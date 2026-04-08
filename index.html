@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
+<title>Dr. Shairi Turner - Media Intelligence Tracker v7</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson-client/3.1.0/topojson-client.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+const d3 = window.d3;
+const topojson = window.topojson;
+
+
+// ─── HEADSHOT (base64) ────────────────────────────────────────────────────────
+const HEADSHOT = "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";
+
+// ─── COMPLETE MEDIA DATASET (216+ entries - Drive + Web Research) ─────────────
+const MEDIA_DATA = [
+  // ── 2026 ────────────────────────────────────────────────────────────────────
+  { id:1, title:"CBS News New York - How Constant War Coverage Is Fueling Stress and Anxiety", outlet:"CBS News NYC", type:"TV", date:"2026-03-18", year:2026, city:"New York, NY", lat:40.71, lng:-74.01, url:"https://www.cbsnews.com/newyork/video/how-constant-war-coverage-is-fueling-stress-and-anxiety/", description:"Live/taped 4-6 min segment on why global uncertainty takes a toll on mental health and how people can manage fear and anxiety around current events.", tier:"Tier 1", featured:true },
+  { id:2, title:"LA Times - Loneliness in Gen Z", outlet:"Los Angeles Times", type:"Article", date:"2026-03-25", year:2026, city:"Los Angeles, CA", lat:34.05, lng:-118.24, url:"https://www.latimes.com/lifestyle/story/2026-03-25/gen-z-loneliness-social-media-tips", description:"Expert source on Gen Z loneliness crisis. 67% of Gen Z classified as lonely; Dr. Turner provided clinical context and CTL data on isolation trends.", tier:"Tier 1", featured:true },
+  { id:3, title:"Local News Live - War Anxiety", outlet:"Local News Live", type:"TV", date:"2026-03-20", year:2026, city:"[TBD]", lat:38.9, lng:-77.04, url:"https://www.localnewslive.com/video/2026/03/23/mental-health-impact-todays-news-cycle/", description:"Live news segment addressing war anxiety and the mental health toll of global conflict news coverage.", tier:"Tier 2", featured:false },
+  { id:4, title:"LinkedIn Live - Self-Care for Black Moms", outlet:"LinkedIn", type:"Social", date:"2026-02-24", year:2026, city:"Remote", lat:30.33, lng:-84.37, url:"https://linkedin.com/in/shairi-turner-md-mph", description:"LinkedIn Live activation addressing self-care strategies specifically for Black mothers, covering burnout, boundaries, and mental wellness.", tier:"Tier 2", featured:false },
+  { id:5, title:"USA Today - Celebrity Deaths and Health Anxiety", outlet:"USA Today", type:"Article", date:"2026-02-23", year:2026, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.usatoday.com/story/life/health-wellness/2026/02/23/james-van-der-beek-eric-dane-colon-cancer-als-anxiety/88819017007/", description:"Expert commentary on how celebrity deaths (James Van Der Beek, Eric Dane) trigger health anxiety in the public.", tier:"Tier 1", featured:false },
+  { id:6, title:"Isolation and Loneliness Top Issues in 2025 - Press Release", outlet:"EINPresswire / OPEN MINDS", type:"Press", date:"2026-02-11", year:2026, city:"Remote", lat:38.9, lng:-77.04, url:"https://openminds.com/press/isolation-and-loneliness-among-top-issues-in-crisis-text-line-conversations-in-2025/", description:"Quote: 'Loneliness is not just about being alone; it's about feeling unseen, unheard, and unsupported.' 16%+ of conversations discussed loneliness in 2025.", tier:"Tier 2", featured:false },
+
+  // ── 2025 ────────────────────────────────────────────────────────────────────
+  { id:7, title:"Harvard Center for Suicide Research and Prevention - Webinar", outlet:"Harvard Medical School", type:"Conference", date:"2025-12-19", year:2025, city:"Boston, MA", lat:42.36, lng:-71.06, url:"https://cff.hms.harvard.edu", description:"High-profile academic webinar at Harvard's Center for Suicide Research and Prevention. Crisis text-based intervention and data-driven prevention.", tier:"Tier 1", featured:true },
+  { id:8, title:"CBS Kansas City - Holiday Stress", outlet:"CBS Kansas City (KCTV5)", type:"TV", date:"2025-12-19", year:2025, city:"Kansas City, MO", lat:39.1, lng:-94.58, url:"https://www.kctv5.com/video/2025/12/20/navigating-holiday-stressors-with-crisis-text-line/", description:"Local TV segment on navigating holiday stress, loneliness, and financial strain. CTL resources and expert advice.", tier:"Tier 2", featured:false },
+  { id:9, title:"CTL Offers Expert Guidance for Holiday Stress - Press Release", outlet:"GlobeNewswire", type:"Press", date:"2025-12-02", year:2025, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.globenewswire.com", description:"Quote: 'The holidays can amplify emotional distress, even for people who appear to be managing well.'", tier:"Tier 2", featured:false },
+  { id:10, title:"KJCT8 News - Mental Health Resources During Holiday Season", outlet:"KJCT8 News", type:"Article", date:"2025-11-27", year:2025, city:"Grand Junction, CO", lat:39.06, lng:-108.55, url:"https://www.kjct8.com/2025/11/27/mental-health-resources-crucial-during-holiday-season/", description:"Quoted: 'Really lean into what brings you joy during the holiday and worry less about other people's expectations.'", tier:"Tier 2", featured:false },
+  { id:11, title:"Delphi NYC Workshops", outlet:"Delphi Initiative", type:"Conference", date:"2025-11-11", year:2025, city:"New York, NY", lat:40.71, lng:-74.01, url:"", description:"Multi-day workshop series in New York City. Topics: mental health policy, crisis intervention innovation, and organizational resilience.", tier:"Tier 2", featured:false },
+  { id:12, title:"NBC Grand Junction - Holiday Mental Health Resources", outlet:"NBC / KKCO11", type:"TV", date:"2025-11-21", year:2025, city:"Grand Junction, CO", lat:39.06, lng:-108.55, url:"https://www.kkco11news.com/2025/11/27/mental-health-resources-crucial-during-holiday-season/", description:"Local NBC affiliate segment on mental health resources during the holiday season. CTL texting resources highlighted.", tier:"Tier 3", featured:false },
+  { id:13, title:"Adelphi University - Mental Health Guidelines for Youth Sports Advisory Panel", outlet:"Adelphi University / Nike / Movember", type:"Conference", date:"2025-11-17", year:2025, city:"New York, NY", lat:40.71, lng:-74.01, url:"", description:"Advisory panel to advance Mental Health Guidelines for Youth Sport Across the United States. Led by Dr. Meredith Whitley (Adelphi) and Dr. William Massey (Oregon State). Nike and Movember partners.", tier:"Tier 1", featured:true },
+  { id:14, title:"World Mental Health Day - CTL Activation", outlet:"Crisis Text Line / Partners", type:"Social", date:"2025-10-10", year:2025, city:"Remote", lat:30.33, lng:-84.37, url:"https://www.crisistextline.org", description:"Annual World Mental Health Day activation across social platforms. CTL data highlights, volunteer spotlights, and public awareness content.", tier:"Tier 2", featured:false },
+  { id:15, title:"Kaiser Permanente - Presence of Mind Content Series", outlet:"Kaiser Permanente", type:"Panel", date:"2025-10-01", year:2025, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Mental health content series for parents. Kaiser Permanente annual partnership activation. Topics: screen time, parental burnout, teen mental health.", tier:"Tier 2", featured:false },
+  { id:16, title:"In the Cellar 2025 - Mistress of Ceremonies", outlet:"Children's Miracle Network / CFCU", type:"Keynote", date:"2025-09-16", year:2025, city:"Milwaukee, WI", lat:43.04, lng:-87.9, url:"", description:"Emceed In the Cellar 2025 at Harley-Davidson Museum. Raised a record $1.18M for Children's Miracle Network Hospitals. Keynote on youth suicide rates, LGBTQ+ youth, and CTL impact. 'Journey of Care' theme.", tier:"Tier 1", featured:true },
+  { id:17, title:"Community Financial Credit Union - Mental Health Partnership Event", outlet:"CFCU", type:"Conference", date:"2025-09-15", year:2025, city:"[TBD]", lat:38.9, lng:-77.04, url:"", description:"CTL-CFCU partnership event on financial stress and mental wellness. Preceded the press release announcing the partnership.", tier:"Tier 2", featured:false },
+  { id:18, title:"FAMU Freshmen Forum - Keynote", outlet:"Florida A&M University", type:"Keynote", date:"2025-09-18", year:2025, city:"Tallahassee, FL", lat:30.42, lng:-84.28, url:"", description:"Keynote at FAMU Freshmen Forum on mental health and wellbeing. Announced FAMU × CTL Partnership (text RATTLER to 741741). Encouraged students to have difficult conversations about death and dying.", tier:"Tier 1", featured:true },
+  { id:19, title:"Mother-Daughter Confidence Brunch - Fireside Chat", outlet:"The Confidence / Dr. Pamela Ellis", type:"Keynote", date:"2025-09-13", year:2025, city:"Chicago, IL", lat:41.88, lng:-87.63, url:"", description:"Fireside chat with Dr. Pamela Ellis on mental health in Black girls and young women. Data on rising suicide rates among Black girls 13-19, and systemic barriers to care.", tier:"Tier 2", featured:false },
+  { id:20, title:"PAGE × Crisis Text Line Event", outlet:"PAGE", type:"Conference", date:"2025-09-16", year:2025, city:"[TBD]", lat:30.33, lng:-84.37, url:"", description:"CTL partnership event with PAGE organization. [Details TBD - review Drive subfolder]", tier:"Tier 2", featured:false },
+  { id:21, title:"MLB Workshop - SF Junior Giants Commissioner's Camp", outlet:"Major League Baseball", type:"Conference", date:"2025-03-01", year:2025, city:"San Francisco, CA", lat:37.77, lng:-122.42, url:"", description:"Workshop at the SF Junior Giants Commissioner's Camp on youth athlete mental well-being and the CTL-MLB partnership.", tier:"Tier 2", featured:false },
+  { id:22, title:"Florida State University MPH Keynote", outlet:"Florida State University", type:"Keynote", date:"2025-05-01", year:2025, city:"Tallahassee, FL", lat:30.44, lng:-84.28, url:"", description:"Keynote address to FSU MPH graduating class. Discussed public health leadership, mental health advocacy, and her career trajectory.", tier:"Tier 1", featured:true },
+  { id:23, title:"Mental Health Leadership Summit", outlet:"[TBD]", type:"Conference", date:"2025-04-01", year:2025, city:"[TBD]", lat:38.9, lng:-77.04, url:"", description:"Mental health leadership summit. [Details TBD from Drive subfolder]", tier:"Tier 2", featured:false },
+  { id:24, title:"Crisis Text Line Launches Financial Stress Hotline - Press Release", outlet:"GlobeNewswire", type:"Press", date:"2025-04-02", year:2025, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.globenewswire.com", description:"Quote: 'Our data show a clear and growing connection between financial challenges and mental health struggles.' Dedicated financial stress text line launch.", tier:"Tier 1", featured:false },
+  { id:25, title:"NBC Boston - Financial Stress Mental Health", outlet:"NBC Boston", type:"TV", date:"2025-03-01", year:2025, city:"Boston, MA", lat:42.36, lng:-71.06, url:"", description:"Local NBC segment on the mental health impact of financial stress. CTL's financial stress support resources.", tier:"Tier 2", featured:false },
+  { id:26, title:"NBC Washington DC - Financial Stress Mental Health", outlet:"NBC Washington DC", type:"TV", date:"2025-03-01", year:2025, city:"Washington, D.C.", lat:38.9, lng:-77.04, url:"", description:"Local NBC segment on the mental health impact of financial stress. CTL's financial stress support resources.", tier:"Tier 2", featured:false },
+  { id:27, title:"Pizetta Media Podcast 2025 - Wildfires, Doomscrolling & Student Stress", outlet:"Pizetta Media", type:"Podcast", date:"2025-03-01", year:2025, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Separate 2025 appearance from 2023 episode. Topics: California wildfires and mental health, doomscrolling, student stress. [URL TBD]", tier:"Tier 2", featured:false },
+  { id:28, title:"Proven Not Perfect - Navigating Boundaries and Mental Health", outlet:"Proven Not Perfect (Shontra Powell)", type:"Podcast", date:"2025-02-01", year:2025, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.buzzsprout.com/1777365/episodes/16502129", description:"Boundaries, mental health, upbringing/trauma impacts, and parenting in the digital age.", tier:"Tier 2", featured:false },
+  { id:29, title:"CFCU Community Financial Credit Union Partnership - Press Release", outlet:"Crisis Text Line", type:"Press", date:"2025-02-11", year:2025, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Dr. Turner quoted on financial stress and mental well-being. CFCU-CTL pioneer partnership announcement.", tier:"Tier 2", featured:false },
+  { id:30, title:"Self-Care Unit Podcast - Crisis Text Line", outlet:"Self-Care Unit", type:"Podcast", date:"2025-07-01", year:2025, city:"Remote", lat:38.9, lng:-77.04, url:"https://podcasts.apple.com/us/podcast/crisis-text-line-with-dr-shairi-turner/id1647270406?i=1000724597630", description:"CTL mission and mental health self-care strategies.", tier:"Tier 2", featured:false },
+  { id:31, title:"CrisisTrends.org Public Data Portal - Press Release", outlet:"Crisis Text Line", type:"Press", date:"2025-05-08", year:2025, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.crisistextline.org", description:"Launch of public data portal. Quote: 'Every conversation offers a window into the mental health challenges people are experiencing right now.'", tier:"Tier 2", featured:false },
+  { id:32, title:"MLB 'Six Innings' Mental Well-Being Conversation", outlet:"Major League Baseball / Little League", type:"Conference", date:"2025-05-12", year:2025, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.littleleague.org/news/six-innings-mental-well-being-spotlight-with-major-league-baseball-and-crisis-text-line/", description:"Video interview with April Brown (MLB SVP) on youth athlete mental well-being and the MLB-Crisis Text Line partnership.", tier:"Tier 1", featured:false },
+  { id:33, title:"Inspira Advantage - Interview with Dr. Shairi Turner", outlet:"Inspira Advantage", type:"Article", date:"2025-05-01", year:2025, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.inspiraadvantage.com/program-spotlight/our-interview-with-shairi-turner", description:"Mental health advice for pre-med students discussing burnout, imposter syndrome, self-harm, and self-care.", tier:"Tier 2", featured:false },
+  { id:34, title:"Tallahassee Woman Magazine - 'Define Your Boundaries'", outlet:"Tallahassee Woman", type:"Article", date:"2025-02-01", year:2025, city:"Tallahassee, FL", lat:30.44, lng:-84.28, url:"", description:"Feature on setting boundaries for mental wellness. [URL TBD - review Drive subfolder]", tier:"Tier 3", featured:false },
+  { id:35, title:"Fox Sacramento - Back-to-School Student Mental Health", outlet:"Fox Sacramento", type:"TV", date:"2025-08-01", year:2025, city:"Sacramento, CA", lat:38.58, lng:-121.49, url:"https://www.youtube.com/watch?v=lXpieQ4jwcE", description:"Local FOX segment on back-to-school mental health challenges for students. CTL resources and expert guidance.", tier:"Tier 2", featured:false },
+
+  // ── 2024 ────────────────────────────────────────────────────────────────────
+  { id:36, title:"LF999 Satellite Media Tour with Carmela Wallace - 49 Outlets, 366 Hits, 12.4M Impressions", outlet:"49 national/regional TV, radio, and online outlets", type:"TV", date:"2024-02-28", year:2024, city:"National", lat:38.9, lng:-77.04, url:"https://www.crisistextline.org/blog/2024/02/28/carmela-wallace-and-live-free-999-release-national-psa-aiming-to-normalize-the-conversation-around-mental-health-and-substance-dependency/", description:"'Turning Pain into Purpose.' Live Free 999 / Carmela Wallace Satellite Media Tour. 49 outlets, 366 hits, 12,397,409 total impressions across TV, radio, and online. Co-appeared with Carmela Wallace (Juice WRLD's mother). Largest single media event in CTL history. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 1+", featured:true },
+  { id:37, title:"MLB Network - MLB Now", outlet:"MLB Network", type:"TV", date:"2024-06-01", year:2024, city:"National", lat:38.9, lng:-77.04, url:"https://www.mlb.com/video/april-brown-and-shairi-turner-talk-mental-health", description:"Live segment with April Brown, SVP MLB. Mental health awareness and CTL-MLB Partnership on nationally televised MLB Network.", tier:"Tier 1", featured:true },
+  { id:38, title:"TIME Magazine - 'Stressed About the Election?'", outlet:"TIME Magazine", type:"Article", date:"2024-10-01", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"https://time.com/7096438/election-stress-crisis-text-line-988/", description:"Extensively quoted. 'Preparing for what we anticipate will be a surge.' 'Everyone is aware of what an unprecedented time this is.'", tier:"Tier 1", featured:true },
+  { id:39, title:"USA Today - 'On Election Night, Crisis Lines Won't Stop Ringing'", outlet:"USA Today", type:"Article", date:"2024-10-28", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.usatoday.com/story/life/health-wellness/2024/10/28/crisis-lines-election-anxiety/75827309007/", description:"Quoted extensively on election anxiety. 'We can't predict what 2024 will bring.' Major national placement.", tier:"Tier 1", featured:true },
+  { id:40, title:"New York Times - Election Stress", outlet:"New York Times", type:"Article", date:"2024-11-01", year:2024, city:"New York, NY", lat:40.71, lng:-74.01, url:"", description:"Quoted in New York Times on election season mental health stress and crisis line preparation. [URL TBD - confirmed via Drive]", tier:"Tier 1", featured:false },
+  { id:41, title:"The Brian Lehrer Show (WNYC) - Election Stress", outlet:"WNYC / The Brian Lehrer Show", type:"Radio", date:"2024-09-01", year:2024, city:"New York, NY", lat:40.71, lng:-74.01, url:"", description:"Live on-air with WNYC's flagship political and cultural program. Election stress and CTL resources. Tier 1 radio placement.", tier:"Tier 1", featured:true },
+  { id:42, title:"Mornings with Zerlina (SiriusXM) - Election Stress", outlet:"SiriusXM / Mornings with Zerlina", type:"Radio", date:"2024-10-01", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"National satellite radio on Zerlina Maxwell's flagship political morning show. Election stress, mental health, and CTL resources.", tier:"Tier 1", featured:false },
+  { id:43, title:"Nashville Public Radio - 'This Is Nashville' - College Admissions Stress", outlet:"Nashville Public Radio", type:"Radio", date:"2024-05-01", year:2024, city:"Nashville, TN", lat:36.17, lng:-86.78, url:"https://wpln.org/post/episodes/navigating-college-decision-day/", description:"NPR affiliate interview on college admissions stress and youth mental health. CTL data on academic pressure.", tier:"Tier 2", featured:false },
+  { id:44, title:"WGBH Boston (NPR) - College Admissions Stress", outlet:"WGBH / NPR Boston", type:"Radio", date:"2024-04-01", year:2024, city:"Boston, MA", lat:42.36, lng:-71.06, url:"", description:"Public radio interview on the mental health impact of college admissions stress. CTL resources for high school students.", tier:"Tier 2", featured:false },
+  { id:45, title:"WGBH Boston (NPR) - College Protest Stress", outlet:"WGBH / NPR Boston", type:"Radio", date:"2024-05-15", year:2024, city:"Boston, MA", lat:42.36, lng:-71.06, url:"", description:"Follow-up WGBH interview on the mental health impact of campus protest activity on students. CTL crisis support.", tier:"Tier 2", featured:false },
+  { id:46, title:"WTOP Radio DC - [Topic TBD]", outlet:"WTOP Radio", type:"Radio", date:"2024-08-01", year:2024, city:"Washington, D.C.", lat:38.9, lng:-77.04, url:"", description:"Interview on WTOP, Washington DC's leading all-news radio station. [Topic TBD - review Drive subfolder]", tier:"Tier 2", featured:false },
+  { id:47, title:"NPR Cincinnati - Volunteer Impact / Loneliness / CTL", outlet:"NPR Cincinnati", type:"Radio", date:"2024-09-01", year:2024, city:"Cincinnati, OH", lat:39.1, lng:-84.51, url:"", description:"Public radio interview on CTL volunteer counselor impact, loneliness epidemic data, and crisis text services.", tier:"Tier 2", featured:false },
+  { id:48, title:"KSL Salt Lake City - Combatting Loneliness", outlet:"KSL Radio / Salt Lake City", type:"Radio", date:"2024-04-01", year:2024, city:"Salt Lake City, UT", lat:40.76, lng:-111.89, url:"", description:"Voice recording interview for KSL Salt Lake City on combatting loneliness epidemic. CTL data and clinical guidance.", tier:"Tier 2", featured:false },
+  { id:49, title:"Teen Life Coach Podcast - Ep. 254: You Are Not Alone", outlet:"Teen Life Coach Podcast", type:"Podcast", date:"2024-09-10", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"https://podcasts.apple.com/ca/podcast/254-you-are-not-alone-reaching-out-for-support-with-dr/id1459471499?i=1000669068845", description:"37-min episode during Suicide Prevention Month. Bullying, doomscrolling, getting help during a crisis.", tier:"Tier 2", featured:false },
+  { id:50, title:"Nemours Well Beyond Medicine - 'Text for Help'", outlet:"Nemours Children's Health", type:"Podcast", date:"2024-11-01", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"https://nemourswellbeyond.org/episode/text-for-help-exploring-crisis-text-line/", description:"CTL origin story, intersection with 988, and U.S. mental health trend data. Host: Carol Vassar. Available audio and video.", tier:"Tier 2", featured:false },
+  { id:51, title:"Despite Impossible - Season 2, Ep. 6", outlet:"Despite Impossible", type:"Podcast", date:"2024-04-01", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Mental health destigmatization episode. [URL TBD - confirmed via Drive]", tier:"Tier 2", featured:false },
+  { id:52, title:"Change Agents Podcast - Community Resilience Report", outlet:"Change Agents Podcast", type:"Podcast", date:"2024-02-26", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Community resilience and crisis intervention. Confirmed via Drive briefing doc dated Feb 26, 2024.", tier:"Tier 2", featured:false },
+  { id:53, title:"Release Recovery / Zac Clark - America's Youth Mental Health Crisis", outlet:"Release Recovery Podcast", type:"Podcast", date:"2024-05-01", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"https://podcasts.apple.com/us/podcast/the-youth-of-america-in-crisis-solutions-and-hope/id1741605552?i=1000657175778", description:"Youth mental health crisis discussion with addiction recovery advocate Zac Clark.", tier:"Tier 2", featured:false },
+  { id:54, title:"HLTH 2024 - Kaiser Permanente Panel: 'The Kids Are Not Right'", outlet:"HLTH 2024", type:"Conference", date:"2024-10-07", year:2024, city:"Las Vegas, NV", lat:36.17, lng:-115.14, url:"", description:"Panelist at HLTH Conference 2024 Kaiser Permanente panel on youth mental health crisis. Las Vegas. High-profile health tech conference.", tier:"Tier 1", featured:true },
+  { id:55, title:"CTL Congressional Briefing", outlet:"U.S. Congress", type:"Policy", date:"2024-05-01", year:2024, city:"Washington, D.C.", lat:38.9, lng:-77.04, url:"", description:"Direct Congressional presentation on Crisis Text Line impact, youth mental health data, and 988 advocacy. Capitol Hill.", tier:"Tier 1", featured:true },
+  { id:56, title:"HHS Black Health Forum", outlet:"U.S. Department of Health and Human Services", type:"Policy", date:"2024-04-01", year:2024, city:"Washington, D.C.", lat:38.9, lng:-77.04, url:"", description:"Attendance and participation at HHS Black Health Forum. Health equity and mental health disparities in Black communities.", tier:"Tier 1", featured:false },
+  { id:57, title:"Howard University - De-Stress Week", outlet:"Howard University", type:"Conference", date:"2024-04-15", year:2024, city:"Washington, D.C.", lat:38.9, lng:-77.04, url:"", description:"Speaker at Howard University's annual De-Stress Week. HBCU student mental health and CTL campus partnerships.", tier:"Tier 2", featured:false },
+  { id:58, title:"Future of Mental Health Conference", outlet:"Future of Mental Health", type:"Conference", date:"2024-05-01", year:2024, city:"[TBD]", lat:38.9, lng:-77.04, url:"", description:"Speaker on the future of crisis intervention and digital mental health platforms.", tier:"Tier 2", featured:false },
+  { id:59, title:"Match Group Workshop - Digital Safety & Mental Health", outlet:"Match Group", type:"Conference", date:"2024-05-01", year:2024, city:"[TBD]", lat:38.9, lng:-77.04, url:"", description:"Lead presenter at Match Group internal workshop on digital safety and mental health on dating platforms.", tier:"Tier 2", featured:false },
+  { id:60, title:"CFCU CEO Roundtable - Child Mental Health", outlet:"Community Financial Credit Union", type:"Conference", date:"2024-09-01", year:2024, city:"[TBD]", lat:38.9, lng:-77.04, url:"", description:"Speaker at CFCU CEO roundtable on child mental health and the role of financial institutions in wellness support.", tier:"Tier 2", featured:false },
+  { id:61, title:"Alignment for Progress - 90-90-90 by 2033", outlet:"Alignment for Progress", type:"Conference", date:"2024-10-01", year:2024, city:"[TBD]", lat:38.9, lng:-77.04, url:"", description:"Presenter on mental health parity and the 90-90-90 goal framework for mental health treatment access by 2033.", tier:"Tier 2", featured:false },
+  { id:62, title:"JED Policy Summit - CTL Unique Individual Experience Insights", outlet:"JED Foundation", type:"Conference", date:"2024-11-01", year:2024, city:"[TBD]", lat:38.9, lng:-77.04, url:"", description:"Panelist presenting CTL's Unique Individual Experience (UIE) data insights at JED Foundation Policy Summit.", tier:"Tier 2", featured:false },
+  { id:63, title:"Rosalynn Carter Institute - 'Making the Unseen Seen'", outlet:"Rosalynn Carter Institute for Caregivers", type:"Conference", date:"2024-10-01", year:2024, city:"[TBD]", lat:38.9, lng:-77.04, url:"", description:"Speaker on caregiver mental health and making invisible mental health struggles visible. Rosalynn Carter Institute flagship event.", tier:"Tier 1", featured:false },
+  { id:64, title:"Black Men's Health - BIPOC MHAM Video", outlet:"Black Men's Health", type:"Social", date:"2024-08-01", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Video content for BIPOC Mental Health Awareness Month. Addressing mental health disparities and barriers in Black communities.", tier:"Tier 2", featured:false },
+  { id:65, title:"Kaiser Permanente - World Mental Health Day Twitter Chat", outlet:"Kaiser Permanente", type:"Social", date:"2024-10-10", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Annual World Mental Health Day Twitter/X live chat event with Kaiser Permanente partnership.", tier:"Tier 2", featured:false },
+  { id:66, title:"JED Foundation / SHEEO - Mental Health Learning Community", outlet:"JED Foundation / SHEEO", type:"Conference", date:"2024-10-01", year:2024, city:"[TBD]", lat:38.9, lng:-77.04, url:"", description:"Higher education mental health learning community event. CTL's role supporting college students in crisis.", tier:"Tier 2", featured:false },
+  { id:67, title:"CTL #NotAloneChallenge", outlet:"Crisis Text Line", type:"Social", date:"2024-09-01", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Social media challenge campaign during Suicide Prevention Month. Viral awareness activation.", tier:"Tier 2", featured:false },
+  { id:68, title:"Crisis Text Line Election Press Release", outlet:"Crisis Text Line", type:"Press", date:"2024-09-16", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.crisistextline.org", description:"Launch of election-specific support hotline. Positioned CTL as mental health resource for election-related anxiety.", tier:"Tier 2", featured:false },
+  { id:69, title:"Carmela Wallace / Live Free 999 PSA - Press Release", outlet:"Crisis Text Line", type:"Press", date:"2024-02-28", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.crisistextline.org", description:"Press release for joint national media tour with Carmela Wallace (Juice WRLD's mother). 43 outlets, 12.1M impressions.", tier:"Tier 1", featured:false },
+  { id:70, title:"KSNV-NBC Las Vegas - College Admissions Stress", outlet:"KSNV NBC Las Vegas", type:"TV", date:"2024-04-01", year:2024, city:"Las Vegas, NV", lat:36.17, lng:-115.14, url:"", description:"Local NBC affiliate segment on college admissions season mental health stress. CTL resources for teens.", tier:"Tier 2", featured:false },
+  { id:71, title:"KOLD-TV Tucson - Doomscrolling Tips", outlet:"KOLD-TV Tucson", type:"TV", date:"2024-04-01", year:2024, city:"Tucson, AZ", lat:32.22, lng:-110.93, url:"https://www.kold.com/2024/06/10/protecting-mental-health-while-scrolling-social-media/", description:"Local TV segment on doomscrolling and news anxiety. Practical tips for digital mental health.", tier:"Tier 2", featured:false },
+  { id:72, title:"WISH-TV Indianapolis - Doomscrolling Tips", outlet:"WISH-TV Indianapolis", type:"TV", date:"2024-05-01", year:2024, city:"Indianapolis, IN", lat:39.77, lng:-86.16, url:"https://www.wishtv.com/news/allindiana/dr-shairi-turner-highlights-risks-of-doomscrolling/", description:"Local TV segment on doomscrolling and news anxiety. Digital wellness tips.", tier:"Tier 2", featured:false },
+  { id:73, title:"Good Day Chicago - Doomscrolling / Election Anxiety", outlet:"Good Day Chicago", type:"TV", date:"2024-09-01", year:2024, city:"Chicago, IL", lat:41.88, lng:-87.63, url:"https://www.fox32chicago.com/video/1492414", description:"Morning show appearance on doomscrolling and election anxiety. CTL crisis support resources.", tier:"Tier 2", featured:false },
+  { id:74, title:"CBS Chicago - Doomscrolling / Election Anxiety", outlet:"CBS Chicago", type:"TV", date:"2024-10-01", year:2024, city:"Chicago, IL", lat:41.88, lng:-87.63, url:"https://www.cbsnews.com/chicago/video/the-dangers-of-doomscrolling/", description:"Local CBS segment on doomscrolling and election anxiety as mental health triggers.", tier:"Tier 2", featured:false },
+  { id:75, title:"CBS Monroe - Suicide Prevention Month", outlet:"KNOE CBS Monroe", type:"TV", date:"2024-09-01", year:2024, city:"Monroe, LA", lat:32.5, lng:-92.12, url:"https://www.knoe.com/2024/09/13/how-crisis-text-line-volunteer-counselors-save-lives/", description:"Local CBS segment during Suicide Prevention Month. CTL volunteer counselors and 741741 resources.", tier:"Tier 2", featured:false },
+  { id:76, title:"ABC Las Vegas - Election Stress", outlet:"ABC Las Vegas", type:"TV", date:"2024-10-01", year:2024, city:"Las Vegas, NV", lat:36.17, lng:-115.14, url:"", description:"Local ABC affiliate segment on election-related stress and anxiety. CTL resources for voters.", tier:"Tier 2", featured:false },
+  { id:77, title:"ABC Phoenix - Holiday Stress / Social Media", outlet:"ABC Phoenix", type:"TV", date:"2024-11-01", year:2024, city:"Phoenix, AZ", lat:33.45, lng:-112.07, url:"", description:"Local ABC segment on holiday stress and the role of social media in amplifying anxiety during the holidays.", tier:"Tier 2", featured:false },
+  { id:78, title:"Good Day Dayton - Holiday Stress / Social Media", outlet:"Good Day Dayton", type:"TV", date:"2024-11-01", year:2024, city:"Dayton, OH", lat:39.76, lng:-84.2, url:"", description:"Morning show on holiday stress and social media's impact on mental health.", tier:"Tier 2", featured:false },
+  { id:79, title:"USA Today - Suicide Prevention Month", outlet:"USA Today", type:"Article", date:"2024-09-01", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Expert commentary for USA Today during Suicide Prevention Month. CTL data and crisis resources.", tier:"Tier 1", featured:false },
+  { id:80, title:"SheKnows - Bullying and Mental Health", outlet:"SheKnows", type:"Article", date:"2024-09-01", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.sheknows.com/parenting/articles/810745/tips-for-dealing-with-bullies/", description:"Expert quoted on bullying's impact on youth mental health. CTL data on bullying conversation trends.", tier:"Tier 2", featured:false },
+  { id:81, title:"Well+Good - Adult Bullying", outlet:"Well+Good", type:"Article", date:"2024-05-01", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.wellandgood.com/what-is-adult-bullying/", description:"Expert commentary on adult bullying and its mental health effects.", tier:"Tier 2", featured:false },
+  { id:82, title:"Nevada Independent - Voters 'Cautiously Optimistic'", outlet:"The Nevada Independent", type:"Article", date:"2024-10-01", year:2024, city:"Las Vegas, NV", lat:36.17, lng:-115.14, url:"https://thenevadaindependent.com/article/nevada-voters-say-they-are-cautiously-optimistic", description:"Quoted on managing news overload during election season. Practical advice for voters experiencing anxiety.", tier:"Tier 2", featured:false },
+
+  // ── 2023 ────────────────────────────────────────────────────────────────────
+  { id:83, title:"NBC Meet the Press - America's Mental Health Crisis Special Edition", outlet:"NBC / Meet the Press", type:"TV", date:"2023-12-31", year:2023, city:"New York, NY", lat:40.71, lng:-74.01, url:"https://www.nbcnews.com/meet-the-press/meet-press-december-31-2023-n1308240", description:"Expert panel with Sen. Fetterman, Govs. Cox & Polis, Fmr. Rep. Patrick Kennedy. Addressed record suicide rates, national prevention gap, parents as first responders. Full transcript available. Flagship broadcast placement.", tier:"Tier 1+", featured:true },
+  { id:84, title:"Scripps News - Mental Health Barriers Related to Race", outlet:"Scripps News", type:"TV", date:"2023-09-22", year:2023, city:"Washington, D.C.", lat:38.9, lng:-77.04, url:"https://scrippsnews.com/stories/clinicians-lawmakers-talk-mental-health-barriers-related-to-race/", description:"CBC Foundation conference coverage. Trauma types, mental health barriers related to race, CTL services. Extensively quoted.", tier:"Tier 1", featured:false },
+  { id:85, title:"CNN - 'As Gun Violence Reaches Record Levels, Underlying Trauma May be Building'", outlet:"CNN", type:"Article", date:"2023-04-17", year:2023, city:"Atlanta, GA", lat:33.75, lng:-84.39, url:"https://www.cnn.com/2023/04/17/health/mass-shootings-mental-health/", description:"Extensively quoted: people reach out to CTL 'to establish a sense of stability and calm' after mass tragedies. Mental health toll of gun violence.", tier:"Tier 1", featured:true },
+  { id:86, title:"ABC Madison, WI - Winter Blues", outlet:"ABC Madison, WI", type:"TV", date:"2023-01-15", year:2023, city:"Madison, WI", lat:43.07, lng:-89.4, url:"", description:"Morning show segment on seasonal depression and winter blues. CTL resources for managing seasonal mood changes.", tier:"Tier 3", featured:false },
+  { id:87, title:"Good Day Columbus - Grief and Loneliness", outlet:"Good Day Columbus", type:"TV", date:"2023-02-01", year:2023, city:"Columbus, OH", lat:39.96, lng:-82.99, url:"", description:"Morning show segment on grief and loneliness. CTL crisis text resources for those experiencing loss.", tier:"Tier 3", featured:false },
+  { id:88, title:"Fox Binghamton - Loneliness: Valentine's Day", outlet:"Fox Binghamton", type:"TV", date:"2023-02-10", year:2023, city:"Binghamton, NY", lat:42.1, lng:-75.91, url:"", description:"Valentine's Day special on loneliness and isolation. CTL resources for those struggling with connection.", tier:"Tier 3", featured:false },
+  { id:89, title:"Fox Nashville - Covenant School Shooting Response", outlet:"Fox Nashville", type:"TV", date:"2023-03-28", year:2023, city:"Nashville, TN", lat:36.17, lng:-86.78, url:"", description:"Response coverage following the Covenant School shooting in Nashville. CTL crisis support for community trauma.", tier:"Tier 2", featured:false },
+  { id:90, title:"Good Day Seattle - United in Empathy Campaign", outlet:"Good Day Seattle (Fox 13 KCPQ)", type:"TV", date:"2023-03-01", year:2023, city:"Seattle, WA", lat:47.61, lng:-122.33, url:"https://www.fox13seattle.com/video/1228244", description:"United in Empathy campaign segment on destigmatizing mental health conversations. CTL partnership.", tier:"Tier 2", featured:false },
+  { id:91, title:"Good Day DC - Anxiety & CTL Info (Live In-Studio)", outlet:"Good Day DC (FOX 5 WTTG)", type:"TV", date:"2023-06-01", year:2023, city:"Washington, D.C.", lat:38.89, lng:-77.05, url:"https://www.fox5dc.com/video/1237485", description:"In-studio discussing CTL services, anxiety, stress, and availability of volunteers in English and Spanish.", tier:"Tier 2", featured:false },
+  { id:92, title:"Good Day DC - How to Manage Anxiety", outlet:"Good Day DC (FOX 5 WTTG)", type:"TV", date:"2023-07-15", year:2023, city:"Washington, D.C.", lat:38.89, lng:-77.05, url:"https://www.fox5dc.com/video/1237485", description:"Health Watch segment sharing advice on dealing with anxiety and finding mental health support.", tier:"Tier 2", featured:false },
+  { id:93, title:"Nashville Channel 5 Talk of the Town - Fear of Flying", outlet:"News Channel 5 Nashville", type:"TV", date:"2023-04-01", year:2023, city:"Nashville, TN", lat:36.17, lng:-86.78, url:"https://www.newschannel5.com/talk-of-the-town/tips-for-getting-over-your-fear-of-flying", description:"Morning talk show on fear of flying and travel anxiety. CTL resources for anxiety management.", tier:"Tier 3", featured:false },
+  { id:94, title:"Nashville Channel 5 - Fear of Flying (2nd Appearance)", outlet:"News Channel 5 Nashville", type:"TV", date:"2023-08-01", year:2023, city:"Nashville, TN", lat:36.17, lng:-86.78, url:"", description:"Second appearance on fear of flying. Follow-up segment with updated data and CTL crisis resources.", tier:"Tier 3", featured:false },
+  { id:95, title:"CBS Documentary - Coping Strategies", outlet:"CBS Documentary", type:"TV", date:"2023-06-01", year:2023, city:"National", lat:38.9, lng:-77.04, url:"", description:"National CBS documentary on coping strategies for mental health. [Details TBD from Drive subfolder]", tier:"Tier 1", featured:false },
+  { id:96, title:"Congressional Black Caucus Foundation 52nd ALC - Youth Mental Health Panel", outlet:"CBCF / Rep. Troy Carter", type:"Conference", date:"2023-09-22", year:2023, city:"Washington, D.C.", lat:38.9, lng:-77.04, url:"https://troycarter.house.gov/media/press-releases/rep-carter-hosts-youth-mental-health-panel-congressional-black-caucus-annual", description:"Panel: 'Our Kids are NOT OK, and Neither are We!' Hosted by Rep. Troy Carter (D-LA). Youth mental health in the Black community. SAMHSA Bureau Chief Brandon Johnson co-panelist.", tier:"Tier 1", featured:true },
+  { id:97, title:"HLTH 2023 - 'Line of Defense Against Suicide'", outlet:"HLTH 2023", type:"Conference", date:"2023-10-09", year:2023, city:"Las Vegas, NV", lat:36.17, lng:-115.14, url:"https://www.mmm-online.com/home/podcasts/hlth-2023-takeouts-crisis-text-lines-dr-shairi-turner/", description:"Presenter at major health industry conference. Media interviews with MM+M Podcast and BlackDoctor.org on-site.", tier:"Tier 1", featured:false },
+  { id:98, title:"Kennedy Forum - Alignment for Progress (2023)", outlet:"Kennedy Forum", type:"Conference", date:"2023-10-01", year:2023, city:"[TBD]", lat:38.9, lng:-77.04, url:"", description:"Presenter at Kennedy Forum on mental health policy alignment. [Details TBD - confirmed via Drive]", tier:"Tier 2", featured:false },
+  { id:99, title:"Trust For America's Health Congressional Briefing - 'Pain in the Nation 2023'", outlet:"TFAH / U.S. Congress", type:"Policy", date:"2023-10-25", year:2023, city:"Washington, D.C.", lat:38.9, lng:-77.04, url:"", description:"Congressional briefing + national webinar on 'Pain in the Nation' report. Drug, alcohol, and suicide mortality data.", tier:"Tier 1", featured:false },
+  { id:100, title:"Mental Health Coalition - Safe Online Standards Meeting", outlet:"Mental Health Coalition", type:"Conference", date:"2023-10-20", year:2023, city:"[TBD]", lat:38.9, lng:-77.04, url:"", description:"Expert panelist at Mental Health Coalition safe online standards meeting. Digital platform mental health responsibilities.", tier:"Tier 2", featured:false },
+  { id:101, title:"JED State Policy Retreat", outlet:"JED Foundation", type:"Conference", date:"2023-10-01", year:2023, city:"[TBD]", lat:38.9, lng:-77.04, url:"", description:"JED Foundation state policy retreat on university mental health policy.", tier:"Tier 2", featured:false },
+  { id:102, title:"FSU Psychology Clinic", outlet:"Florida State University", type:"Conference", date:"2023-10-01", year:2023, city:"Tallahassee, FL", lat:30.44, lng:-84.28, url:"", description:"Professional development engagement at FSU Psychology Clinic. Clinical training and CTL partnership.", tier:"Tier 3", featured:false },
+  { id:103, title:"FSU Joiner Lab", outlet:"Florida State University", type:"Conference", date:"2023-10-15", year:2023, city:"Tallahassee, FL", lat:30.44, lng:-84.28, url:"", description:"Engagement with FSU's Joiner Lab, a leading suicide research center. Research collaboration discussion.", tier:"Tier 2", featured:false },
+  { id:104, title:"National Day of Service Webinar", outlet:"[TBD]", type:"Conference", date:"2023-01-01", year:2023, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Co-presented with Dr. Bellina Shaw at National Day of Service webinar on mental health and community service.", tier:"Tier 3", featured:false },
+  { id:105, title:"MM&M Podcast - HLTH 2023 Takeouts", outlet:"Medical Marketing + Media", type:"Podcast", date:"2023-10-09", year:2023, city:"Las Vegas, NV", lat:36.17, lng:-115.14, url:"https://www.mmm-online.com/home/podcasts/hlth-2023-takeouts-crisis-text-lines-dr-shairi-turner/", description:"Recorded at HLTH 2023. Suicide prevention, 988 backup, youth mental health. Noted it was recorded on her birthday.", tier:"Tier 2", featured:false },
+  { id:106, title:"Checking In with Michelle Williams (iHeart / Black Effect Network)", outlet:"iHeart Radio / Black Effect Podcast Network", type:"Podcast", date:"2023-07-01", year:2023, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.iheart.com/podcast/1119-checking-in-with-michelle-75200039/", description:"BIPOC Mental Health Month. Youth mental health epidemic, social media, childhood trauma, loneliness. Grammy-winning Destiny's Child singer's podcast.", tier:"Tier 1", featured:true },
+  { id:107, title:"She Persisted - Ep. 169: Teen Mental Health Epidemic", outlet:"She Persisted (Sadie Sutton)", type:"Podcast", date:"2023-11-01", year:2023, city:"Remote", lat:38.9, lng:-77.04, url:"https://shepersistedpodcast.com/podcast-episodes/ep169", description:"Career in minority health policy and juvenile justice, ACEs, teen mental health epidemic, CTL data trends, and what needs to change.", tier:"Tier 2", featured:false },
+  { id:108, title:"Outcomes Rocket Podcast - Lifeline for Those in Mental Health Crisis", outlet:"Outcomes Rocket", type:"Podcast", date:"2023-11-01", year:2023, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Interview on CTL as lifeline for those in mental health crisis. [URL TBD - confirmed via Drive]", tier:"Tier 2", featured:false },
+  { id:109, title:"Pizetta Media Podcast - Mental Health Advocacy", outlet:"Pizetta Media", type:"Podcast", date:"2023-11-01", year:2023, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.youtube.com/watch?v=f0B3SKzSFaY", description:"Mental health advocacy discussion. [URL TBD - confirmed via Drive]", tier:"Tier 2", featured:false },
+  { id:110, title:"Circles Podcast - Reducing Mental Health Stigma", outlet:"Circles Podcast", type:"Podcast", date:"2023-08-01", year:2023, city:"Remote", lat:38.9, lng:-77.04, url:"https://spotifyanchor-web.app.link/e/Y76cwsPp5Cb", description:"Episode on reducing mental health stigma. [URL TBD - confirmed via Drive]", tier:"Tier 2", featured:false },
+  { id:111, title:"SiriusXM Doctor Radio with Dr. Thea Gallagher", outlet:"SiriusXM / Doctor Radio", type:"Podcast", date:"2023-05-01", year:2023, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Interview on SiriusXM Doctor Radio. [Topic TBD - confirmed via Drive]", tier:"Tier 2", featured:false },
+  { id:112, title:"BlackDoctor.org - Breaking the Silence on Mental Health in the Black Community", outlet:"BlackDoctor.org", type:"Article", date:"2023-10-09", year:2023, city:"Las Vegas, NV", lat:36.17, lng:-115.14, url:"https://blackdoctor.org/breaking-the-silence-on-mental-health-in-the-black-community/", description:"In-depth interview at HLTH 2023. Quoted: 'Depression is the normal response to someone who's had a traumatic childhood.'", tier:"Tier 2", featured:false },
+  { id:113, title:"APA Blog - Intersectionality and Crisis Intervention", outlet:"American Psychiatric Association", type:"Article", date:"2022-11-08", year:2022, city:"Washington, D.C.", lat:38.9, lng:-77.04, url:"https://www.psychiatry.org/News-room/APA-Blogs/Intersectionality-and-Crisis-Intervention", description:"In-depth Q&A on intersectional vulnerabilities and suicide risk. Quoted: 'We are losing children of color at rates that are epidemic.'", tier:"Tier 2", featured:false },
+  { id:114, title:"Authority Magazine - Women in Wellness Feature", outlet:"Authority Magazine (Medium)", type:"Article", date:"2023-11-01", year:2023, city:"Remote", lat:38.9, lng:-77.04, url:"https://medium.com/authority-magazine/women-in-wellness-dr-shairi-turner-of-crisis-text-line-on-the-five-lifestyle-tweaks-that-will-help-30eb6370739a", description:"Extensive Q&A on background, career journey, BIPOC youth mental health, and practical wellness tips.", tier:"Tier 2", featured:false },
+  { id:115, title:"Trust for America's Health - Trauma-Informed Care", outlet:"Trust for America's Health", type:"Article", date:"2023-10-01", year:2023, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Expert commentary on trauma-informed care importance. [URL TBD - confirmed via Drive]", tier:"Tier 2", featured:false },
+  { id:116, title:"Truth Initiative Op-Ed - Supporting Gen Z's Mental Health by Texting", outlet:"Truth Initiative", type:"Article", date:"2023-10-01", year:2023, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Op-ed on how texting-based crisis support meets Gen Z where they are digitally. [URL TBD - Drive confirmed]", tier:"Tier 2", featured:false },
+  { id:117, title:"PureWow - Teen Mental Health & Eating Disorders", outlet:"PureWow", type:"Article", date:"2023-04-01", year:2023, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Expert commentary on teen mental health and eating disorders. [URL TBD - Drive confirmed]", tier:"Tier 2", featured:false },
+  { id:118, title:"The Root - Mental Health in the Black Community", outlet:"The Root", type:"Article", date:"2023-03-01", year:2023, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Expert commentary on mental health disparities in the Black community. [URL TBD - Drive confirmed]", tier:"Tier 2", featured:false },
+  { id:119, title:"Women's Health Magazine - Importance of Crisis Lines", outlet:"Women's Health", type:"Article", date:"2023-05-01", year:2023, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Expert on the importance of crisis lines for women's mental health. [URL TBD - Drive confirmed]", tier:"Tier 2", featured:false },
+  { id:120, title:"Kaiser Permanente - Presence of Mind Twitter Chat (Youth Mental Health)", outlet:"Kaiser Permanente", type:"Social", date:"2023-05-01", year:2023, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Live Twitter/X chat event with Kaiser Permanente on youth mental health tips. Confirmed via Drive subfolder.", tier:"Tier 2", featured:false },
+  { id:121, title:"LinkedIn Video - Christian Arrington Student Athlete", outlet:"LinkedIn / CTL", type:"Social", date:"2023-09-01", year:2023, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.linkedin.com/in/shairi-turner-md-mph", description:"Video conversation with URI student athlete Christian Arrington. Mental health in the Black community and stigmas among athletes.", tier:"Tier 2", featured:false },
+
+  // ── 2022 ────────────────────────────────────────────────────────────────────
+  { id:122, title:"Nike 'No Off Season' - Co-Host (9-Episode Podcast Series)", outlet:"Nike TRAINED / Apple Podcasts / Spotify", type:"Podcast", date:"2022-05-10", year:2022, city:"Remote / National", lat:45.52, lng:-122.68, url:"https://podcasts.apple.com/us/podcast/no-off-season-launches/id1414073313?i=1000560257592", description:"Landmark podcast co-hosted with Natalia Dayan (LMSW). Karl-Anthony Towns (grief/COVID loss), Raven Saunders (domestic abuse, suicidal ideation), Megan Bartlett. 400,000+ downloads. EBONY, Essence, Footwear News coverage.", tier:"Tier 1+", featured:true },
+  { id:123, title:"FOSI 2022 Annual Conference - Featured Conversation with Discord", outlet:"Family Online Safety Institute", type:"Conference", date:"2022-11-01", year:2022, city:"Washington, D.C.", lat:38.91, lng:-77.03, url:"https://fosi.org/event/fosi-2022-annual-conference/", description:"Featured fireside chat with Savannah Badalich of Discord. Teen mental health in digital spaces. Discord-CTL partnership model for online crisis support.", tier:"Tier 2", featured:false },
+  { id:124, title:"HuffPost - 'Your Teen May Be Engaging in Digital Self-Harm'", outlet:"HuffPost", type:"Article", date:"2022-09-14", year:2022, city:"New York, NY", lat:40.71, lng:-74.01, url:"https://www.huffpost.com/entry/what-parents-need-to-know-about-digital-self-harm_l_63209744e4b0eac9f4db89d8", description:"Quoted: 'Digital self-harm can be a way of drawing attention or sympathy for a teen who is struggling.' CTL data: 20% increase in bullying conversations.", tier:"Tier 2", featured:false },
+  { id:125, title:"Fortune - 'The Silent Crisis of Caregivers'", outlet:"Fortune", type:"Article", date:"2022-08-23", year:2022, city:"New York, NY", lat:40.71, lng:-74.01, url:"https://fortune.com/well/2022/08/23/i-wasnt-sleeping-the-silent-crisis-of-the-caregivers-of-children-who-struggle-with-mental-health/", description:"Quoted on how parents/caregivers cope with child mental health struggles. Naming fears, modeling self-care, open-ended prompts.", tier:"Tier 2", featured:false },
+  { id:126, title:"HuffPost - 'What to Do If Your Child Talks About Suicide'", outlet:"HuffPost", type:"Article", date:"2022-09-28", year:2022, city:"New York, NY", lat:40.71, lng:-74.01, url:"https://www.huffpost.com/entry/what-you-should-do-if-your-child-talks-about-suicide_l_632e126be4b0695c1d8227cb", description:"Quoted: 'Asking about feelings of death or dying does NOT cause a child to try to take their life.' Practical guidance for parents.", tier:"Tier 2", featured:false },
+  { id:127, title:"Discord Snowsgiving Fireside Chat", outlet:"Discord", type:"Panel", date:"2022-12-05", year:2022, city:"Remote", lat:37.77, lng:-122.42, url:"", description:"Annual Snowsgiving event fireside chat on teen mental health in digital gaming and social spaces. CTL-Discord partnership.", tier:"Tier 2", featured:false },
+  { id:128, title:"Bipartisan Policy Center - DC Think Tank Introduction", outlet:"Bipartisan Policy Center", type:"Policy", date:"2022-12-01", year:2022, city:"Washington, D.C.", lat:38.9, lng:-77.04, url:"", description:"Introduction to the Bipartisan Policy Center leadership. CTL's bipartisan mental health policy work and advocacy.", tier:"Tier 2", featured:false },
+  { id:129, title:"Aquifer Podcast - Practicing Trauma-Informed Care", outlet:"Aquifer", type:"Podcast", date:"2022-11-01", year:2022, city:"Remote", lat:30.33, lng:-84.37, url:"", description:"Podcast on trauma-informed care practices for healthcare providers. CTL's clinical approach and training model.", tier:"Tier 2", featured:false },
+  { id:130, title:"FOX 5 DC - Holiday Stress Segment", outlet:"FOX 5 DC (WTTG)", type:"TV", date:"2022-12-22", year:2022, city:"Washington, D.C.", lat:38.89, lng:-77.05, url:"https://www.fox5dc.com/video/1157870", description:"Morning show holiday stress segment. Navigating difficult family conversations and mental health during the holiday season.", tier:"Tier 2", featured:false },
+  { id:131, title:"People Chica - Mental Health Interview", outlet:"People Chica (People en Español)", type:"Article", date:"2022-12-21", year:2022, city:"New York, NY", lat:40.71, lng:-74.01, url:"", description:"Feature interview in People Chica (Spanish-language People). CTL's bilingual services (text APOYO to 741741).", tier:"Tier 2", featured:false },
+  { id:132, title:"Axios Latino Interview", outlet:"Axios Latino", type:"Article", date:"2022-11-10", year:2022, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Interview for Axios Latino on mental health disparities in Latinx communities and CTL's Spanish-language services.", tier:"Tier 2", featured:false },
+  { id:133, title:"Business Insider - Mental Health Interview", outlet:"Business Insider", type:"Article", date:"2022-12-01", year:2022, city:"New York, NY", lat:40.71, lng:-74.01, url:"", description:"Interview with Business Insider on mental health trends and CTL's role in the crisis support ecosystem. [URL TBD - Drive confirmed]", tier:"Tier 2", featured:false },
+  { id:134, title:"USA Today - Holiday Stress 2022", outlet:"USA Today", type:"Article", date:"2022-12-02", year:2022, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Expert commentary on holiday stress, loneliness, and CTL resources during the holiday season.", tier:"Tier 1", featured:false },
+  { id:135, title:"Quartz - Mental Health Interview", outlet:"Quartz", type:"Article", date:"2022-11-01", year:2022, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Interview with Quartz on mental health topics. [URL TBD - confirmed via Drive]", tier:"Tier 2", featured:false },
+  { id:136, title:"ABC Austin - [Topic TBD]", outlet:"ABC Austin", type:"TV", date:"2022-12-01", year:2022, city:"Austin, TX", lat:30.27, lng:-97.74, url:"", description:"Local ABC affiliate appearance. [Topic TBD from Drive subfolder]", tier:"Tier 3", featured:false },
+  { id:137, title:"CBS New Orleans - [Topic TBD]", outlet:"CBS New Orleans", type:"TV", date:"2022-12-01", year:2022, city:"New Orleans, LA", lat:29.95, lng:-90.07, url:"", description:"Local CBS affiliate appearance. [Topic TBD from Drive subfolder]", tier:"Tier 3", featured:false },
+  { id:138, title:"World Mental Health Day - Instagram Live with Dior Vargas & Carrie Zhang", outlet:"Instagram / Crisis Text Line", type:"Social", date:"2022-10-03", year:2022, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.crisistextline.org/blog/2022/10/03/creating-awareness-about-youth-mental-health-challenges-in-honor-of-world-mental-health-day/", description:"Social media live events with Dior Vargas and Carrie Zhang for World Mental Health Day 2022.", tier:"Tier 2", featured:false },
+  { id:139, title:"LinkedIn Big Ideas Submission", outlet:"LinkedIn", type:"Social", date:"2022-11-01", year:2022, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Dr. Turner's LinkedIn Big Ideas submission on mental health advocacy and digital crisis support.", tier:"Tier 3", featured:false },
+  { id:140, title:"LF999 / Carmela Wallace - 'Finding Strength in Music' CTL Live Event", outlet:"Live Free 999 / Carmela Wallace", type:"Panel", date:"2022-09-01", year:2022, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Live event on music and mental health in partnership with Carmela Wallace (Juice WRLD's mother). Precursor to 2024 satellite media tour.", tier:"Tier 2", featured:false },
+
+  // ── 2021 ────────────────────────────────────────────────────────────────────
+  { id:141, title:"FOSI Annual Conference 2021 - 'Promoting Mental Health & Mitigating Self Harm'", outlet:"Family Online Safety Institute", type:"Conference", date:"2021-11-02", year:2021, city:"Washington, D.C.", lat:38.91, lng:-77.03, url:"https://fosi.org/event/fosi-2021-annual-conference/", description:"Panel on how social platforms deal with complex mental health issues during the pandemic. Digital safety and mental health mitigation.", tier:"Tier 2", featured:false },
+  { id:142, title:"Nike Frontline Day 2021", outlet:"Nike", type:"Panel", date:"2021-10-18", year:2021, city:"Remote / Portland, OR", lat:45.52, lng:-122.68, url:"", description:"Nike Frontline Day activation in partnership with CTL. Mental health and resilience for athletes and active people.", tier:"Tier 2", featured:false },
+  { id:143, title:"TikTok - World Mental Health Day 2021", outlet:"TikTok", type:"Social", date:"2021-10-10", year:2021, city:"Remote", lat:30.33, lng:-84.37, url:"", description:"World Mental Health Day 2021 TikTok activation. Reaching younger audiences on mental health stigma and CTL resources.", tier:"Tier 2", featured:false },
+  { id:144, title:"L'Attitude Conference / Nike - Latinx Community Mental Health", outlet:"L'Attitude / Nike", type:"Panel", date:"2021-10-08", year:2021, city:"Remote", lat:32.72, lng:-117.16, url:"", description:"Panel at L'Attitude Conference on mental health in the Latinx community. CTL's Spanish-language services and APOYO keyword.", tier:"Tier 2", featured:false },
+  { id:145, title:"People and Culture Summit 2021", outlet:"People and Culture Summit", type:"Conference", date:"2021-09-20", year:2021, city:"[TBD]", lat:30.33, lng:-84.37, url:"", description:"Conference on workplace mental health and organizational culture. [Details TBD]", tier:"Tier 2", featured:false },
+  { id:146, title:"American Association of Suicidology (AAS) 2021", outlet:"AAS", type:"Conference", date:"2021-04-23", year:2021, city:"Virtual", lat:30.33, lng:-84.37, url:"", description:"Annual AAS conference. CTL's role in suicide prevention and text-based crisis intervention data.", tier:"Tier 2", featured:false },
+  { id:147, title:"NASMHPD Annual Conference 2021", outlet:"NASMHPD", type:"Conference", date:"2021-05-25", year:2021, city:"Virtual / Alexandria, VA", lat:38.8, lng:-77.08, url:"", description:"National Association of State Mental Health Program Directors annual conference. Neurobiology of trauma and state mental health policy.", tier:"Tier 2", featured:false },
+  { id:148, title:"CTL Instagram Live - Year-End 2021", outlet:"Instagram / Crisis Text Line", type:"Social", date:"2021-12-01", year:2021, city:"Remote", lat:30.33, lng:-84.37, url:"https://www.instagram.com/doctorshairi/", description:"End-of-year Instagram Live activation for Crisis Text Line. Holiday mental health, year in review, and volunteer appreciation.", tier:"Tier 3", featured:false },
+  { id:149, title:"Commonwealth Fund Fellowship Alumni Event", outlet:"Commonwealth Fund", type:"Conference", date:"2021-05-06", year:2021, city:"Virtual / Boston, MA", lat:42.36, lng:-71.06, url:"https://www.commonwealthfund.org/person/shairi-turner", description:"Annual Commonwealth Fund/Harvard fellowship event for CFF alumni (cohort '02). Minority health leadership networking.", tier:"Tier 2", featured:false },
+  { id:150, title:"NPR Louisville 'In Conversation' - Post-Louisville Shooting Live Panel", outlet:"NPR Louisville", type:"Radio", date:"2023-04-10", year:2023, city:"Louisville, KY", lat:38.25, lng:-85.76, url:"", description:"Live panel on WFPL Louisville public radio following the Old National Bank mass shooting. Community trauma, grief, and crisis resources.", tier:"Tier 2", featured:false },
+
+  // ── Legacy / Pre-2021 ────────────────────────────────────────────────────────
+  { id:151, title:"McLean Hospital TIPS 2018 - 'Language, Data, and Saving Lives'", outlet:"McLean Hospital / Harvard Medical School", type:"Conference", date:"2018-11-01", year:2018, city:"Boston, MA", lat:42.36, lng:-71.06, url:"https://www.mcleanhospital.org/video/shairi-turner-language-data-and-saving-lives-tips-2018", description:"Technology in Psychiatry Summit. NLP, linguistic predictors of mental health, CTL's data-driven approach. Video archived at McLean.", tier:"Tier 2", featured:false },
+  { id:152, title:"CWRU Think Magazine - 'Calming Messages'", outlet:"Case Western Reserve University", type:"Article", date:"2018-04-01", year:2018, city:"Cleveland, OH", lat:41.5, lng:-81.69, url:"https://case.edu/think/spring2018/calming-messages.html", description:"Alumni Q&A profile as CTL's first Chief Medical Officer. Text-based crisis support, anonymity benefits, rural/minority reach.", tier:"Tier 3", featured:false },
+  { id:153, title:"Stanford Magazine - 'They Are Somebody's Children'", outlet:"Stanford Magazine", type:"Article", date:"2008-01-01", year:2008, city:"Palo Alto, CA", lat:37.43, lng:-122.17, url:"https://stanfordmag.org/contents/they-are-somebody-s-children", description:"Extensive feature profiling her work at FL DJJ, childhood in the Bronx, Fieldston School, Stanford, Harvard, and work with incarcerated youth.", tier:"Tier 2", featured:false },
+  { id:154, title:"Tampa Bay Times - Boot Camp Leader Tells of Death", outlet:"Tampa Bay Times", type:"Article", date:"2007-10-09", year:2007, city:"Tampa, FL", lat:27.94, lng:-82.46, url:"https://www.tampabay.com/archive/2007/10/09/boot-camp-leader-tells-of-death/", description:"Coverage of Dr. Turner's testimony as prosecution's final witness in the Martin Lee Anderson boot camp death trial. Nationally televised on Court TV.", tier:"Tier 2", featured:false },
+  { id:155, title:"Florida Legislature - DJJ Office of Health Services Testimony & Funding", outlet:"Florida Legislature", type:"Policy", date:"2007-01-01", year:2007, city:"Tallahassee, FL", lat:30.44, lng:-84.28, url:"", description:"Appeared before oversight committees. Secured additional legislative funding for DJJ health services staffing and policies.", tier:"Tier 1", featured:false },
+  { id:156, title:"Florida Senate Special Master's Report (SB 2968) - Testimony", outlet:"Florida Senate", type:"Policy", date:"2007-01-01", year:2007, city:"Tallahassee, FL", lat:30.44, lng:-84.28, url:"https://www.flsenate.gov/Session/Bill/2007/2968", description:"Testimony referenced (pp. 51-60) regarding boot camp monitoring failures and ammonia capsule protocols.", tier:"Tier 1", featured:false },
+  { id:157, title:"Court TV - Martin Lee Anderson Boot Camp Trial (National Broadcast)", outlet:"Court TV (TruTV)", type:"TV", date:"2007-10-01", year:2007, city:"Tallahassee, FL", lat:30.44, lng:-84.28, url:"https://stanfordmag.org/contents/they-are-somebody-s-children", description:"Prosecution's final witness. Testimony broadcast nationally on Court TV. Questioned by ASA Pam Bondi. Landmark youth justice case.", tier:"Tier 1", featured:true },
+  { id:158, title:"HHS Office on Women's Health - Trauma-Informed Medicine eCases (Project Co-Director)", outlet:"U.S. HHS / Office on Women's Health", type:"Policy", date:"2015-01-01", year:2015, city:"Washington, D.C.", lat:38.9, lng:-77.04, url:"", description:"Project Co-Director for national HHS-funded online virtual patient cases on trauma-informed care for primary care providers.", tier:"Tier 1", featured:false },
+  { id:159, title:"U.S. DOJ / HHS - National Task Force on Restraints with Pregnant Women", outlet:"U.S. DOJ / HHS", type:"Policy", date:"2013-01-01", year:2013, city:"Washington, D.C.", lat:38.9, lng:-77.04, url:"", description:"Co-author of federal task force publication on best practices. DOJ Grant No. 2010-DJ-BX-K080.", tier:"Tier 1", featured:false },
+  { id:160, title:"APHA 143rd Annual Meeting - Trauma-Informed Care Poster", outlet:"American Public Health Association", type:"Conference", date:"2015-11-01", year:2015, city:"Chicago, IL", lat:41.88, lng:-87.63, url:"https://apha.confex.com/apha/143am/webprogram/Person321270.html", description:"Board 6 poster presentation on online clinical training cases from the U.S. Office on Women's Health.", tier:"Tier 2", featured:false },
+  { id:161, title:"NASMHPD - Neurobiological Impact of Trauma (Multiple Presentations)", outlet:"NASMHPD", type:"Conference", date:"2015-01-01", year:2015, city:"Alexandria, VA", lat:38.8, lng:-77.08, url:"", description:"Faculty member. Extensive presentations on the neurobiological impact of trauma for state mental health administrators.", tier:"Tier 2", featured:false },
+  { id:162, title:"International Conference - Neurobiology of Trauma", outlet:"International Conference", type:"Conference", date:"2014-01-01", year:2014, city:"Shanghai, China", lat:31.23, lng:121.47, url:"", description:"International presentation on the neurobiology of trauma. [Specific conference TBD from Harvard CFF bio]", tier:"Tier 2", featured:false },
+  { id:163, title:"988 Lifeline - $500M+ Congressional Appropriations Advocacy", outlet:"SAMHSA / 988 Lifeline Network", type:"Policy", date:"2022-01-01", year:2022, city:"Washington, D.C.", lat:38.9, lng:-77.04, url:"https://cff.hms.harvard.edu/alumni-spotlight/shairi-turner", description:"CTL advocated for over $500M in appropriations for the 988 Suicide & Crisis Line and $10M for Spanish text and chat services. CTL is largest national backup provider.", tier:"Tier 1", featured:false },
+  { id:164, title:"Harvard Commonwealth Fund Alumni Spotlight", outlet:"Harvard Medical School / CFF", type:"Article", date:"2023-01-01", year:2023, city:"Boston, MA", lat:42.36, lng:-71.06, url:"https://cff.hms.harvard.edu/alumni-spotlight/shairi-turner", description:"Extensive career retrospective from juvenile justice to Crisis Text Line. Flagship academic alumni feature.", tier:"Tier 2", featured:false },
+
+  // Academic Publications
+  { id:165, title:"CDC MMWR - Grand Rounds: Child Maltreatment Prevention (Co-Author)", outlet:"CDC / MMWR Vol. 63, No. 12", type:"Article", date:"2014-03-28", year:2014, city:"Atlanta, GA", lat:33.75, lng:-84.39, url:"", description:"Co-authored federal publication: Saul J., Valle L., Mercy J., Turner S.R., et al. Creating a Healthier Future Through Prevention of Child Maltreatment.", tier:"Tier 1", featured:false },
+  { id:166, title:"ACEP News - 'Female Adolescent Violence: New Trends' (Author)", outlet:"ACEP News, Vol. 7, No. 2", type:"Article", date:"2003-02-01", year:2003, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Published article on female adolescent violence, new clinical trends, and implications for emergency physicians.", tier:"Tier 2", featured:false },
+  { id:167, title:"Book Chapter - 'Attending to the Physical Effects of Trauma on Children'", outlet:"Residential Interventions for Children, Adolescents, and Families: A Best Practice Guide", type:"Article", date:"2010-01-01", year:2010, city:"Remote", lat:38.9, lng:-77.04, url:"", description:"Book chapter on attending to the physical effects of trauma on children and youth served in residential programs.", tier:"Tier 2", featured:false },
+  // ── NEW ENTRIES FROM WORKSHEET (v6 additions) ──────────────────────────────
+  { id:168, title:"CWRU Magazine - 'Disconnected in a Connected World'", outlet:"Case Western Reserve University Magazine", type:"Article", date:"2025-10-01", year:2025, city:"Cleveland, OH", lat:41.50, lng:-81.69, url:"https://case.edu/news/disconnected-connected-world", description:"Feature article in CWRU Magazine (Fall/Winter 2025) on disconnection in the digital age. Alumni spotlight on Dr. Turner's mental health advocacy work.", tier:"Tier 2", featured:false },
+  { id:169, title:"Fox5 Good Day New York - Dr. Shairi Turner Interview", outlet:"Fox 5 Good Day New York", type:"TV", date:"2022-10-01", year:2022, city:"New York, NY", lat:40.71, lng:-74.01, url:"https://www.youtube.com/watch?v=qghTbHzhcao", description:"In-studio interview as CTL Chief Health Officer on Good Day New York. Mental health awareness and crisis support resources.", tier:"Tier 2", featured:false },
+  { id:170, title:"CBS News Boston - World Mental Health Day Special", outlet:"CBS News Boston", type:"TV", date:"2022-10-10", year:2022, city:"Boston, MA", lat:42.36, lng:-71.06, url:"https://www.cbsnews.com/boston/video/world-mental-health-day-a-cbs-boston-special/", description:"CBS Boston special segment for World Mental Health Day. Dr. Turner featured on crisis intervention and CTL resources.", tier:"Tier 2", featured:false },
+  { id:171, title:"WINK News SWFL - Back-to-School Stress for SWFL Students", outlet:"WINK News (Fort Myers)", type:"TV", date:"2018-08-01", year:2018, city:"Fort Myers, FL", lat:26.64, lng:-81.87, url:"https://www.winknews.com/archives/crisis-text-line-offers-insight-into-back-to-school-stress-for-swfl-students/article_0b341840-2009-531d-8c58-c2e6f83058c4.html", description:"Local news segment on back-to-school stress for Southwest Florida students. CTL insight and crisis support resources.", tier:"Tier 3", featured:false },
+  { id:172, title:"Crisis Text Line Blog - 'Introducing: Dr. Shairi Turner'", outlet:"Crisis Text Line", type:"Press", date:"2017-09-27", year:2017, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.crisistextline.org/blog/2017/09/27/introducing-dr-shairi-turner/", description:"Official Crisis Text Line blog announcement introducing Dr. Shairi Turner as Chief Medical Officer.", tier:"Tier 2", featured:false },
+  { id:173, title:"FSU College of Social Work - 'Trauma Informed Practice Expert to Join FSU'", outlet:"Florida State University", type:"Article", date:"2017-04-01", year:2017, city:"Tallahassee, FL", lat:30.44, lng:-84.28, url:"https://csw.fsu.edu/news-events/publications", description:"FSU announcement of Dr. Turner joining as trauma-informed practice expert. Highlights career spanning juvenile justice, public health, and clinical care.", tier:"Tier 2", featured:false },
+  // ── NEW USA TODAY ENTRIES (v6 additions) ───────────────────────────────────
+  { id:174, title:"USA Today - How to React to Election Results", outlet:"USA Today", type:"Article", date:"2024-11-06", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.usatoday.com/story/life/health-wellness/2024/11/06/donald-trump-election-kamala-harris-how-to-react/76087792007/", description:"Expert commentary on coping with election results, emotional regulation, and mental health impacts of political outcomes.", tier:"Tier 1", featured:false },
+  { id:175, title:"USA Today - Family Caregivers and Suicidal Ideation", outlet:"USA Today", type:"Article", date:"2025-07-29", year:2025, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.usatoday.com/story/life/health-wellness/2025/07/29/family-caregivers-suicidal-ideation-higher-rates/85272214007/", description:"Expert source on higher rates of suicidal ideation among family caregivers. CTL data and crisis support resources.", tier:"Tier 1", featured:false },
+  { id:176, title:"USA Today - Kim Kardashian, Tesla Bot, and Social Media Anxiety", outlet:"USA Today", type:"Article", date:"2024-11-20", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.usatoday.com/story/life/health-wellness/2024/11/20/kim-kardashian-tesla-bot-instagram-trump-elon-musk/76452852007/", description:"Expert commentary on social media anxiety triggers, celebrity influence, and tech-driven mental health impacts.", tier:"Tier 1", featured:false },
+  { id:177, title:"USA Today - LGBTQ Crisis Hotlines After Presidential Election", outlet:"USA Today", type:"Article", date:"2024-11-07", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.usatoday.com/story/life/health-wellness/2024/11/07/lgbtq-hotlines-crisis-center-presidential-election/76092268007/", description:"Expert source on surge in LGBTQ crisis hotline usage following presidential election. CTL data and resources.", tier:"Tier 1", featured:false },
+  { id:178, title:"USA Today - Kurt Cobain 'Unalive' and Suicide Language", outlet:"USA Today", type:"Article", date:"2024-08-14", year:2024, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.usatoday.com/story/life/health-wellness/2024/08/14/kurt-cobain-unalive-suicide-language/74787682007/", description:"Expert commentary on evolving suicide-related language, the 'unalive' phenomenon, and responsible media framing.", tier:"Tier 1", featured:false },
+
+  // ── LF999 Satellite Media Tour - Individual TV Station Entries (Feb-Mar 2024) ──
+  { id:179, title:"KDVR Fox 31 Denver - LF999 Satellite Media Tour", outlet:"KDVR-TV (FOX)", type:"TV", date:"2024-02-27", year:2024, city:"Denver, CO", lat:39.74, lng:-104.99, url:"", description:"Fox 31 Morning News (10:00 AM). Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #16. 68,210 impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 2", featured:false },
+  { id:180, title:"WKCF CW Orlando - LF999 Satellite Media Tour", outlet:"WKCF-TV (CW)", type:"TV", date:"2024-02-27", year:2024, city:"Orlando, FL", lat:28.54, lng:-81.38, url:"", description:"WESH 2 News on CW 18 (9:00 AM). Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #17. 25,800 impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 3", featured:false },
+  { id:181, title:"KTXL Fox 40 Sacramento - LF999 Satellite Media Tour", outlet:"KTXL-TV (FOX)", type:"TV", date:"2024-02-27", year:2024, city:"Sacramento, CA", lat:38.58, lng:-121.49, url:"", description:"Fox 40 News (9:00 AM). Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #20. 60,320 impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 2", featured:false },
+  { id:182, title:"KPLR CW St. Louis - LF999 Satellite Media Tour", outlet:"KPLR-TV (CW)", type:"TV", date:"2024-02-27", year:2024, city:"St. Louis, MO", lat:38.63, lng:-90.20, url:"", description:"News 11 at Midday (12:00 PM). Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #24. 43,959 impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 2", featured:false },
+  { id:183, title:"KTVI Fox 2 St. Louis - LF999 Satellite Media Tour", outlet:"KTVI-TV (FOX)", type:"TV", date:"2024-02-27", year:2024, city:"St. Louis, MO", lat:38.63, lng:-90.20, url:"", description:"Fox 2 News Midday (11:00 AM). Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #24. 56,959 impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 2", featured:false },
+  { id:184, title:"WBNS CBS Columbus - LF999 Satellite Media Tour", outlet:"WBNS-TV (CBS)", type:"TV", date:"2024-03-19", year:2024, city:"Columbus, OH", lat:39.96, lng:-82.99, url:"", description:"Wake Up CBUS (6:00 AM) and 10TV News at Noon (12:00 PM) - 2 airings. Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #32-33. 44,946 impressions per airing. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 2", featured:false },
+  { id:185, title:"KTBC Fox Austin - LF999 Satellite Media Tour", outlet:"KTBC-TV (FOX)", type:"TV", date:"2024-02-28", year:2024, city:"Austin, TX", lat:30.27, lng:-97.74, url:"", description:"Good Day Austin (7:00 AM). Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #35. 43,509 impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 2", featured:false },
+  { id:186, title:"WXIX Fox 19 Cincinnati - LF999 Satellite Media Tour", outlet:"WXIX-TV (FOX)", type:"TV", date:"2024-02-27", year:2024, city:"Cincinnati, OH", lat:39.10, lng:-84.51, url:"", description:"Fox 19 Now (8:00 AM and 6:00 PM) - 2 airings. Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #36. 47,286 impressions per airing. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 2", featured:false },
+  { id:187, title:"KTNV ABC Las Vegas - LF999 Satellite Media Tour", outlet:"KTNV-TV (ABC)", type:"TV", date:"2024-02-28", year:2024, city:"Las Vegas, NV", lat:36.17, lng:-115.14, url:"https://www.ktnv.com/morningblend/live-free-999-2-28-24", description:"Morning Blend (9:00 AM). Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #40. 27,005 impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 2", featured:false },
+  { id:188, title:"WAVY NBC Norfolk - LF999 Satellite Media Tour", outlet:"WAVY-TV (NBC)", type:"TV", date:"2024-02-29", year:2024, city:"Norfolk, VA", lat:36.85, lng:-76.29, url:"", description:"The Hampton Road Show (11:00 AM). Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #44. 55,831 impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 2", featured:false },
+  { id:189, title:"WHAS ABC Louisville - LF999 Satellite Media Tour", outlet:"WHAS-TV (ABC)", type:"TV", date:"2024-03-05", year:2024, city:"Louisville, KY", lat:38.25, lng:-85.76, url:"", description:"Great Day Live (9:00 AM). Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #48. 58,122 impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 2", featured:false },
+  { id:190, title:"WMC NBC Memphis - LF999 Satellite Media Tour", outlet:"WMC-TV (NBC)", type:"TV", date:"2024-02-27", year:2024, city:"Memphis, TN", lat:35.15, lng:-90.05, url:"https://www.actionnews5.com/2024/02/27/digital-desk-turning-pain-into-purpose/", description:"Digital Desk (9:00 AM) - aired 2/27/2024 and re-aired 3/5/2024. Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #50. 18,845 impressions per airing. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 3", featured:false },
+  { id:191, title:"WRGB CBS Albany - LF999 Satellite Media Tour", outlet:"WRGB-TV (CBS)", type:"TV", date:"2024-03-18", year:2024, city:"Albany, NY", lat:42.65, lng:-73.76, url:"", description:"CBS 6 Morning News (5:00 AM and 6:00 AM) - 2 airings. Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #60. 29,687 impressions per airing. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 3", featured:false },
+  { id:192, title:"WSET ABC Roanoke - LF999 Satellite Media Tour", outlet:"WSET-TV (ABC)", type:"TV", date:"2024-03-01", year:2024, city:"Roanoke, VA", lat:37.27, lng:-79.94, url:"", description:"Living in the Heart of Virginia (12:00 PM). Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #71. 21,011 impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 3", featured:false },
+  { id:193, title:"WHNT CBS Huntsville - LF999 Satellite Media Tour", outlet:"WHNT-TV (CBS)", type:"TV", date:"2024-03-16", year:2024, city:"Huntsville, AL", lat:34.73, lng:-86.59, url:"https://drive.google.com/file/d/1ge25ulejRgWU71z9qenjv5Mud9WRITMo/view?usp=sharing", description:"News 19 at 5 (5:00 AM). Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #81. 26,865 impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 3", featured:false },
+  { id:194, title:"WRCB NBC Chattanooga - LF999 Satellite Media Tour", outlet:"WRCB-TV (NBC)", type:"TV", date:"2024-02-01", year:2024, city:"Chattanooga, TN", lat:35.05, lng:-85.31, url:"", description:"3 Plus You (11:00 AM). Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #84. 25,300 impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 3", featured:false },
+  { id:195, title:"WBBJ ABC Jackson TN - LF999 Satellite Media Tour", outlet:"WBBJ-TV (ABC)", type:"TV", date:"2024-02-27", year:2024, city:"Jackson, TN", lat:35.61, lng:-88.81, url:"", description:"7 Eyewitness News at 5 (5:00 PM). Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #175. 42,856 impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 3", featured:false },
+
+  // ── LF999 Online Hits (verified public URLs) ──
+  { id:196, title:"WCTV Tallahassee Online - LF999 Satellite Media Tour", outlet:"WCTV-TV Online", type:"Article", date:"2024-02-27", year:2024, city:"Tallahassee, FL", lat:30.44, lng:-84.28, url:"https://www.wctv.tv/video/2024/02/27/organization-helping-address-mental-health-substance-dependency/", description:"Online syndicated video post: 'Organization Helping Address Mental Health and Substance Dependency.' Live Free 999 / Carmela Wallace Satellite Media Tour. 308,000 online impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 3", featured:false },
+  { id:197, title:"WIBW Topeka Online - LF999 Satellite Media Tour", outlet:"WIBW-TV Online", type:"Article", date:"2024-02-27", year:2024, city:"Topeka, KS", lat:39.05, lng:-95.68, url:"https://www.wibw.com/video/2024/02/27/organization-helping-address-mental-health-substance-dependency/", description:"Online syndicated video post: 'Organization Helping Address Mental Health and Substance Dependency.' Live Free 999 / Carmela Wallace Satellite Media Tour. 784,000 online impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 3", featured:false },
+
+  // ── 2025 Addition ──
+  { id:198, title:"Forbes Health - Suicide Prevention: Risk Factors, Protective Strategies And Misconceptions", outlet:"Forbes Health", type:"Article", date:"2025-09-23", year:2025, city:"Remote", lat:38.9, lng:-77.04, url:"https://www.forbes.com/health/mind/suicide-prevention-strategies/", description:"Expert source featured in Forbes Health article on suicide prevention risk factors, protective strategies, and common misconceptions.", tier:"Tier 1", featured:false },
+  { id:199, title:"Good News Radio / The Angie Austin Show - LF999 National Syndication", outlet:"Good News Radio", type:"Radio", date:"2024-02-27", year:2024, city:"National", lat:38.9, lng:-77.04, url:"", description:"National syndicated radio. 'The Angie Austin Show.' Live Free 999 / Carmela Wallace Satellite Media Tour. 311 airings, 1,231,272 impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 1", featured:true },
+  { id:200, title:"WKNY-AM New York - LF999 Satellite Media Tour", outlet:"WKNY-AM", type:"Radio", date:"2024-02-27", year:2024, city:"New York, NY", lat:40.71, lng:-74.01, url:"", description:"Radio news segment. Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #1 (New York). 1 airing, 96,745 impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 2", featured:false },
+  { id:201, title:"KKVI-FM Dallas - LF999 Satellite Media Tour", outlet:"KKVI-FM", type:"Radio", date:"2024-02-27", year:2024, city:"Dallas, TX", lat:32.78, lng:-96.80, url:"", description:"'Real Talk Radio.' Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #5 (Dallas). 1 airing, 120,000 impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 2", featured:false },
+  { id:202, title:"KORE-FM Seattle - LF999 Satellite Media Tour", outlet:"KORE-FM", type:"Radio", date:"2024-03-04", year:2024, city:"Seattle, WA", lat:47.61, lng:-122.33, url:"", description:"Radio news segment. Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #13 (Seattle). 1 airing, 38,454 impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 2", featured:false },
+  { id:203, title:"WFSK-FM Nashville - LF999 Satellite Media Tour", outlet:"WFSK-FM", type:"Radio", date:"2024-03-11", year:2024, city:"Nashville, TN", lat:36.17, lng:-86.78, url:"", description:"Radio news segment. Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #26 (Nashville). 1 airing, 38,695 impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 2", featured:false },
+  { id:204, title:"WNNK-AM Harrisburg (4 Sister Stations) - LF999 Satellite Media Tour", outlet:"WNNK-AM", type:"Radio", date:"2024-03-03", year:2024, city:"Harrisburg, PA", lat:40.27, lng:-76.88, url:"", description:"Radio news segment across 4 sister stations. Live Free 999 / Carmela Wallace Satellite Media Tour. Market rank #42 (Harrisburg). 5 airings, 57,600 impressions. Source: LF999 Final Airings Report, March 21, 2024.", tier:"Tier 2", featured:false },
+];
+
+
+// ─── COMPUTED STATS ───────────────────────────────────────────────────────────
+function computeStats() {
+  const byType = {}, byYear = {};
+  const cities = new Set(), outlets = new Set();
+  let tier1 = 0;
+  MEDIA_DATA.forEach(m => {
+    byType[m.type] = (byType[m.type] || 0) + 1;
+    byYear[m.year] = (byYear[m.year] || 0) + 1;
+    if (m.city && m.city !== "Remote" && m.city !== "[TBD]" && m.city !== "Remote / National" && m.city !== "National") {
+      cities.add(m.city.split("/")[0].trim());
+    }
+    outlets.add(m.outlet);
+    if (m.tier === "Tier 1" || m.tier === "Tier 1+") tier1++;
+  });
+  return { total: MEDIA_DATA.length, byType, byYear, cities: cities.size, outlets: outlets.size, tier1, totalWithEstimates: "216+", impressions: "12,397,409+", yearsActive: 6 };
+}
+const STATS = computeStats();
+const TYPES = ["All","TV","Podcast","Radio","Article","Conference","Keynote","Panel","Policy","Social","Press"];
+const YEARS = ["All","2026","2025","2024","2023","2022","2021","2018","2017","2015","2014","2013","2010","2008","2007","2003"];
+
+// ─── THEMES ───────────────────────────────────────────────────────────────────
+const getTheme = (dark) => dark ? {
+  // H - Midnight Navy + Glacier
+  bg: "#0F1520", surface: "#151D2E", surfaceAlt: "#0F1520",
+  border: "rgba(255,255,255,0.22)", borderMid: "rgba(255,255,255,0.32)",
+  text: "#ECF0F8", textSub: "#7080A0", textMuted: "#304060",
+  textTitle: "#ECF0F8",
+  accent: "#5899CC", accentGlow: "rgba(88,153,204,0.14)", accentSoft: "#304860",
+  gold: "#C8A850", goldBg: "rgba(200,168,80,0.12)",
+  card: "#151D2E", cardHover: "#1C2840",
+  shadow: "0 2px 12px rgba(0,0,0,0.45)", shadowLg: "0 8px 40px rgba(0,0,0,0.65)",
+  headerGrad: "linear-gradient(90deg,#5899CC,#4A7AB0)",
+  statBg: "rgba(88,153,204,0.08)",
+  navBg: "#0A1018", navActive: "#151D2E",
+  tabShadow: "0 2px 6px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.10)",
+} : {
+  // L3 - Ventriloc Cool
+  bg: "#F2F4F8", surface: "#FFFFFF", surfaceAlt: "#F2F4F8",
+  border: "#E2E6EE", borderMid: "#C8D0DC",
+  text: "#1B3A6B", textSub: "#7A8898", textMuted: "#B8C4D0",
+  textTitle: "#4A6FA5",
+  accent: "#4A6FA5", accentGlow: "#EDF1F8", accentSoft: "#D4E0F0",
+  gold: "#7A5808", goldBg: "rgba(180,120,20,0.08)",
+  card: "#FFFFFF", cardHover: "#F7F9FC",
+  shadow: "0 1px 3px rgba(20,32,46,0.07), 0 0 0 1px rgba(226,230,238,0.8)",
+  shadowLg: "0 8px 32px rgba(20,32,46,0.12)",
+  headerGrad: "linear-gradient(90deg,#4A6FA5,#2A5F95)",
+  statBg: "rgba(74,111,165,0.06)",
+  navBg: "#E8ECF4", navActive: "#FFFFFF",
+  tabShadow: "0 2px 6px rgba(20,32,46,0.10), 0 0 0 1px #E2E6EE",
+};
+
+// ─── TYPE COLOR MAP - Option B: Muted Studio Palette ─────────────────────────
+const typeColor = (type, dark) => {
+  const LB = "#F4F6FB"; // two gradients lighter than nav tab bg
+  const DB = "#0A1018"; // nav bg - dark
+  const M = {
+    TV:         dark ? { bg:DB, text:"#9A7AB8", border:"transparent" } : { bg:LB, text:"#7A5A8A", border:"transparent" },
+    Article:    dark ? { bg:DB, text:"#C07888", border:"transparent" } : { bg:LB, text:"#A05070", border:"transparent" },
+    Press:      dark ? { bg:DB, text:"#B86868", border:"transparent" } : { bg:LB, text:"#904040", border:"transparent" },
+    Radio:      dark ? { bg:DB, text:"#C08858", border:"transparent" } : { bg:LB, text:"#A06030", border:"transparent" },
+    Policy:     dark ? { bg:DB, text:"#B09878", border:"transparent" } : { bg:LB, text:"#907050", border:"transparent" },
+    Conference: dark ? { bg:DB, text:"#A89838", border:"transparent" } : { bg:LB, text:"#8A7020", border:"transparent" },
+    Keynote:    dark ? { bg:DB, text:"#B08858", border:"transparent" } : { bg:LB, text:"#806040", border:"transparent" },
+    Panel:      dark ? { bg:DB, text:"#A07880", border:"transparent" } : { bg:LB, text:"#705058", border:"transparent" },
+    Podcast:    dark ? { bg:DB, text:"#909090", border:"transparent" } : { bg:LB, text:"#606060", border:"transparent" },
+    Social:     dark ? { bg:DB, text:"#686868", border:"transparent" } : { bg:LB, text:"#484848", border:"transparent" },
+  };
+  return M[type] || M.Press;
+};
+
+// ─── SVG ICONS ────────────────────────────────────────────────────────────────
+const Icon = ({ name, size = 16 }) => {
+  const I = {
+    link: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>,
+    star: <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+    sun:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
+    moon: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
+    pin:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>,
+    clock:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+    gear: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+  };
+  return I[name] || null;
+};
+
+// ─── D3 USA STATE MAP - Animated City Markers ────────────────────────────────
+const FIPS = {"01":"AL","02":"AK","04":"AZ","05":"AR","06":"CA","08":"CO","09":"CT","10":"DE","11":"DC","12":"FL","13":"GA","15":"HI","16":"ID","17":"IL","18":"IN","19":"IA","20":"KS","21":"KY","22":"LA","23":"ME","24":"MD","25":"MA","26":"MI","27":"MN","28":"MS","29":"MO","30":"MT","31":"NE","32":"NV","33":"NH","34":"NJ","35":"NM","36":"NY","37":"NC","38":"ND","39":"OH","40":"OK","41":"OR","42":"PA","44":"RI","45":"SC","46":"SD","47":"TN","48":"TX","49":"UT","50":"VT","51":"VA","53":"WA","54":"WV","55":"WI","56":"WY"};
+
+// City coordinate lookup - canonical lat/lng per named city
+const CITY_COORDS = {
+  "washington, d.c.":  [38.90,-77.04], "washington, d.c":   [38.90,-77.04],
+  "new york, ny":      [40.71,-74.01], "new york":          [40.71,-74.01],
+  "tallahassee, fl":   [30.44,-84.28], "tampa, fl":         [27.94,-82.46],
+  "boston, ma":        [42.36,-71.06],
+  "chicago, il":       [41.88,-87.63],
+  "las vegas, nv":     [36.17,-115.14],
+  "nashville, tn":     [36.17,-86.78],
+  "los angeles, ca":   [34.05,-118.24], "sacramento, ca":   [38.58,-121.49],
+  "san francisco, ca": [37.77,-122.42], "palo alto, ca":    [37.43,-122.17],
+  "milwaukee, wi":     [43.04,-87.90],  "madison, wi":      [43.07,-89.40],
+  "columbus, oh":      [39.96,-82.99],  "dayton, oh":       [39.76,-84.20],
+  "cincinnati, oh":    [39.10,-84.51],
+  "louisville, ky":    [38.25,-85.76],
+  "kansas city, mo":   [39.10,-94.58],
+  "atlanta, ga":       [33.75,-84.39],
+  "seattle, wa":       [47.61,-122.33],
+  "austin, tx":        [30.27,-97.74],  "el paso, tx":      [31.76,-106.49],
+  "new orleans, la":   [29.95,-90.07],  "monroe, la":       [32.50,-92.12],
+  "grand junction, co":[39.06,-108.55],
+  "phoenix, az":       [33.45,-112.07], "tucson, az":       [32.22,-110.93],
+  "indianapolis, in":  [39.77,-86.16],
+  "salt lake city, ut":[40.76,-111.89],
+  "alexandria, va":    [38.72,-76.98],
+  "fort myers, fl":    [26.64,-81.87],
+  "binghamton, ny":    [42.10,-75.91],
+  "cleveland, oh":     [41.50,-81.69],
+  "louisville, ky":    [38.25,-85.76],
+  "denver, co":        [39.74,-104.99],
+  "orlando, fl":       [28.54,-81.38],
+  "st. louis, mo":     [38.63,-90.20], "st louis, mo":      [38.63,-90.20],
+  "norfolk, va":       [36.85,-76.29],
+  "albany, ny":        [42.65,-73.76],
+  "roanoke, va":       [37.27,-79.94],
+  "huntsville, al":    [34.73,-86.59],
+  "chattanooga, tn":   [35.05,-85.31],
+  "jackson, tn":       [35.61,-88.81],
+  "memphis, tn":       [35.15,-90.05],
+  "topeka, ks":        [39.05,-95.68],
+  "dallas, tx":        [32.78,-96.80],  "dallas,tx":         [32.78,-96.80],
+  "harrisburg, pa":    [40.27,-76.88],
+};
+
+const getCityCoords = (city) => {
+  if (!city || city === "Remote" || city === "[TBD]" || city === "National" || city === "Remote / National" || city === "Virtual") return null;
+  const key = city.toLowerCase().split("/")[0].trim();
+  for (const [k, v] of Object.entries(CITY_COORDS)) {
+    if (key.includes(k) || k.includes(key)) return v;
+  }
+  return null;
+};
+
+const USMap = ({ dark, t, data }) => {
+  const svgRef = useRef(null);
+  const [selCity, setSelCity] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState(false);
+  const [animDone, setAnimDone] = useState(false);
+
+  // Build city groups - aggregate by canonical lat/lng
+  const cityMap = {};
+  data.forEach(m => {
+    const coords = getCityCoords(m.city);
+    if (!coords) return;
+    const key = `${coords[0].toFixed(2)},${coords[1].toFixed(2)}`;
+    if (!cityMap[key]) cityMap[key] = { lat: coords[0], lng: coords[1], city: m.city.split("/")[0].trim(), items: [] };
+    cityMap[key].items.push(m);
+  });
+  // Sort each city's items chronologically; sort cities by earliest appearance
+  const cities = Object.values(cityMap).map(c => ({
+    ...c,
+    items: c.items.sort((a,b) => new Date(a.date)-new Date(b.date)),
+    first: c.items.reduce((e,m) => new Date(m.date)<new Date(e.date)?m:e, c.items[0]),
+  })).sort((a,b) => new Date(a.first.date)-new Date(b.first.date));
+
+  const maxCount = Math.max(1, ...cities.map(c => c.items.length));
+
+  // State appearance counts for choropleth base
+  const stateCounts = {};
+  data.forEach(m => {
+    const city = (m.city||"").toLowerCase();
+    if (city.includes("washington, d")) stateCounts["DC"]=(stateCounts["DC"]||0)+1;
+    else if (city.includes(", ny")||city.includes("new york")||city.includes("binghamton")) stateCounts["NY"]=(stateCounts["NY"]||0)+1;
+    else if (city.includes(", fl")||city.includes("tallahassee")||city.includes("tampa")) stateCounts["FL"]=(stateCounts["FL"]||0)+1;
+    else if (city.includes(", ma")||city.includes("boston")) stateCounts["MA"]=(stateCounts["MA"]||0)+1;
+    else if (city.includes(", il")||city.includes("chicago")) stateCounts["IL"]=(stateCounts["IL"]||0)+1;
+    else if (city.includes(", nv")||city.includes("las vegas")) stateCounts["NV"]=(stateCounts["NV"]||0)+1;
+    else if (city.includes(", tn")||city.includes("nashville")) stateCounts["TN"]=(stateCounts["TN"]||0)+1;
+    else if (city.includes(", ca")||city.includes("los angeles")||city.includes("sacramento")||city.includes("san francisco")||city.includes("palo alto")) stateCounts["CA"]=(stateCounts["CA"]||0)+1;
+    else if (city.includes(", wi")||city.includes("milwaukee")||city.includes("madison")) stateCounts["WI"]=(stateCounts["WI"]||0)+1;
+    else if (city.includes(", oh")||city.includes("columbus")||city.includes("dayton")||city.includes("cincinnati")) stateCounts["OH"]=(stateCounts["OH"]||0)+1;
+    else if (city.includes(", ky")||city.includes("louisville")) stateCounts["KY"]=(stateCounts["KY"]||0)+1;
+    else if (city.includes(", mo")||city.includes("kansas city")) stateCounts["MO"]=(stateCounts["MO"]||0)+1;
+    else if (city.includes(", ga")||city.includes("atlanta")) stateCounts["GA"]=(stateCounts["GA"]||0)+1;
+    else if (city.includes(", wa")||city.includes("seattle")) stateCounts["WA"]=(stateCounts["WA"]||0)+1;
+    else if (city.includes(", tx")||city.includes("austin")||city.includes("el paso")) stateCounts["TX"]=(stateCounts["TX"]||0)+1;
+    else if (city.includes(", la")||city.includes("new orleans")||city.includes("monroe")) stateCounts["LA"]=(stateCounts["LA"]||0)+1;
+    else if (city.includes(", co")||city.includes("grand junction")) stateCounts["CO"]=(stateCounts["CO"]||0)+1;
+    else if (city.includes(", az")||city.includes("phoenix")||city.includes("tucson")) stateCounts["AZ"]=(stateCounts["AZ"]||0)+1;
+    else if (city.includes(", in")||city.includes("indianapolis")) stateCounts["IN"]=(stateCounts["IN"]||0)+1;
+    else if (city.includes(", ut")||city.includes("salt lake")) stateCounts["UT"]=(stateCounts["UT"]||0)+1;
+    else if (city.includes(", va")||city.includes("alexandria")) stateCounts["VA"]=(stateCounts["VA"]||0)+1;
+  });
+
+  const selCityItems = selCity ? (cityMap[selCity]?.items || []).sort((a,b)=>new Date(b.date)-new Date(a.date)) : [];
+
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true); setErr(false); setAnimDone(false); setSelCity(null);
+    const ACCENT = "#69BE28";
+    const W = 600, H = 360;
+
+    const loadMap = async () => {
+      try {
+        // Load topojson via script tag (works in sandbox; esm dynamic import does not)
+        await new Promise((resolve, reject) => {
+          if (window.topojson) { resolve(); return; }
+          const s = document.createElement("script");
+          s.src = "https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js";
+          s.onload = resolve;
+          s.onerror = reject;
+          document.head.appendChild(s);
+        });
+
+        const usRaw = await fetch("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json").then(r=>r.json());
+        if (!mounted) return;
+
+        const states = window.topojson.feature(usRaw, usRaw.objects.states);
+        const svg = d3.select(svgRef.current);
+        svg.selectAll("*").remove();
+
+        const proj = d3.geoAlbersUsa().fitSize([W, H], states);
+        const path = d3.geoPath().projection(proj);
+
+        // ── Base map ──────────────────────────────────────────────────────────
+        svg.append("g").selectAll("path")
+          .data(states.features)
+          .join("path")
+          .attr("d", path)
+          .attr("fill", dark ? "#151D2E" : "#FFFFFF")
+          .attr("stroke", dark ? "#5899CC" : "#7A8898")
+          .attr("stroke-width", 0.6);
+
+        if (mounted) setLoading(false);
+
+        // ── Animate markers chronologically - Style I ─────────────────────────
+        const DELAY = 65;
+        cities.forEach((city, i) => {
+          const coords = proj([city.lng, city.lat]);
+          if (!coords) return;
+          const [cx, cy] = coords;
+          const key = `${city.lat.toFixed(2)},${city.lng.toFixed(2)}`;
+          const n = city.items.length;
+          const haloR = 5 + (n / 18) * 18;
+          const haloOp = 0.15 + (n / 18) * 0.60;
+          const coreR = 5;
+
+          setTimeout(() => {
+            if (!mounted) return;
+
+            const g = svg.append("g")
+              .attr("transform", `translate(${cx},${cy})`)
+              .style("cursor", "pointer")
+              .on("click", () => setSelCity(s => s===key ? null : key))
+              .on("mouseenter", function() { d3.select(this).select("circle").attr("opacity", Math.min(haloOp + 0.15, 1)); })
+              .on("mouseleave", function() { d3.select(this).select("circle").attr("opacity", haloOp); });
+
+            // Halo - grows in size and opacity with count
+            g.append("circle")
+              .attr("r", 0)
+              .attr("fill", ACCENT)
+              .attr("opacity", haloOp)
+              .transition().duration(400).ease(d3.easeQuadOut)
+              .attr("r", haloR);
+
+            // Core - always fully solid, bounces in after halo
+            g.append("circle")
+              .attr("r", 0)
+              .attr("fill", ACCENT)
+              .attr("opacity", 1)
+              .transition().duration(300).delay(150).ease(d3.easeBackOut.overshoot(2.2))
+              .attr("r", coreR);
+
+            g.append("title").text(`${city.city} - ${n} appearance${n>1?"s":""}`);
+
+            if (i === cities.length - 1) {
+              setTimeout(() => { if (mounted) setAnimDone(true); }, 400);
+            }
+          }, i * DELAY);
+        });
+
+      } catch(e) { if (mounted) { setErr(true); setLoading(false); } }
+    };
+    loadMap();
+    return () => { mounted = false; };
+  }, [dark]);
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+      {/* Map card - full width */}
+      <div style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:12, padding:"18px 20px", boxShadow:t.shadow }}>
+        <div style={{ fontSize:15, fontWeight:600, color:t.textTitle, marginBottom:3 }}>Geographic Media Reach</div>
+        <div style={{ fontSize:13, color:t.textSub, marginBottom:12 }}>
+          {cities.length} cities · {Object.keys(stateCounts).length} states · Markers populate in chronological order · Click any marker to expand
+        </div>
+        {loading && <div style={{ textAlign:"center", padding:"60px 0", color:t.textSub, fontSize:15 }}>Loading map…</div>}
+        {err && <div style={{ textAlign:"center", padding:"60px 0", color:t.textSub, fontSize:15 }}>Map unavailable - see states below</div>}
+        <svg ref={svgRef} viewBox="0 0 600 360" style={{ width:"75%", display:loading||err?"none":"block", margin:"0 auto" }} />
+        {selCity && selCityItems.length > 0 && (
+          <div style={{ marginTop:12, padding:"10px 14px", background:t.accentGlow, borderRadius:8, border:`1px solid ${t.border}` }}>
+            <div style={{ fontSize:13, fontWeight:700, color:t.accent, marginBottom:8 }}>
+              {cityMap[selCity]?.city} - {selCityItems.length} appearance{selCityItems.length>1?"s":""}
+            </div>
+            {selCityItems.map(m => (
+              <div key={m.id} style={{ fontSize:13, color:t.text, padding:"3px 0 3px 10px", borderLeft:`2px solid ${t.accent}`, marginBottom:3, lineHeight:1.4 }}>
+                <span style={{ fontWeight:600, color:t.textSub }}>{m.date.slice(5,7)}/{m.date.slice(0,4)}</span> · {m.title}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* States panel - full width, two-column grid */}
+      <div style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:12, padding:"16px 20px", boxShadow:t.shadow }}>
+        <div style={{ fontSize:15, fontWeight:600, color:t.textTitle, marginBottom:3 }}>States &amp; Appearances</div>
+        <div style={{ fontSize:13, color:t.textSub, marginBottom:14 }}>Click any state to see dates and details</div>
+        <div style={{ columns:"2", columnGap:24 }}>
+          {Object.entries(stateCounts).sort((a,b) => b[1]-a[1]).map(([ab, n]) => {
+            const stateEntries = data.filter(m => {
+              const c = (m.city||"").toLowerCase();
+              if (ab==="DC") return c.includes("washington, d");
+              if (ab==="NY") return c.includes(", ny")||c.includes("new york")||c.includes("binghamton");
+              if (ab==="FL") return c.includes(", fl")||c.includes("tallahassee")||c.includes("tampa");
+              if (ab==="MA") return c.includes(", ma")||c.includes("boston");
+              if (ab==="IL") return c.includes(", il")||c.includes("chicago");
+              if (ab==="NV") return c.includes(", nv")||c.includes("las vegas");
+              if (ab==="TN") return c.includes(", tn")||c.includes("nashville");
+              if (ab==="CA") return c.includes(", ca")||c.includes("los angeles")||c.includes("sacramento")||c.includes("san francisco")||c.includes("palo alto");
+              if (ab==="WI") return c.includes(", wi")||c.includes("milwaukee")||c.includes("madison");
+              if (ab==="OH") return c.includes(", oh")||c.includes("columbus")||c.includes("dayton")||c.includes("cincinnati");
+              if (ab==="KY") return c.includes(", ky")||c.includes("louisville");
+              if (ab==="MO") return c.includes(", mo")||c.includes("kansas city");
+              if (ab==="GA") return c.includes(", ga")||c.includes("atlanta");
+              if (ab==="WA") return c.includes(", wa")||c.includes("seattle");
+              if (ab==="TX") return c.includes(", tx")||c.includes("austin")||c.includes("el paso");
+              if (ab==="LA") return c.includes(", la")||c.includes("new orleans")||c.includes("monroe");
+              if (ab==="CO") return c.includes(", co")||c.includes("grand junction");
+              if (ab==="AZ") return c.includes(", az")||c.includes("phoenix")||c.includes("tucson");
+              if (ab==="IN") return c.includes(", in")||c.includes("indianapolis");
+              if (ab==="UT") return c.includes(", ut")||c.includes("salt lake");
+              if (ab==="VA") return c.includes(", va")||c.includes("alexandria");
+              if (ab==="PA") return c.includes(", pa")||c.includes("williamsport");
+              return false;
+            }).sort((a,b) => new Date(b.date)-new Date(a.date));
+
+            const open = selCity === ab;
+            return (
+              <div key={ab} style={{ breakInside:"avoid" }}>
+                <button onClick={() => setSelCity(s => s===ab ? null : ab)} style={{
+                  width:"100%", textAlign:"left", background:"transparent", border:"none",
+                  padding:"7px 0", cursor:"pointer", borderBottom:`1px solid ${t.border}`,
+                  display:"flex", justifyContent:"space-between", alignItems:"center"
+                }}>
+                  <span style={{ fontSize:14, fontWeight:600, color: open ? t.accent : t.text }}>{ab}</span>
+                  <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                    <span style={{ fontSize:12, color: dark ? "#69BE28" : "#69BE28", fontWeight:700 }}>{n}</span>
+                    <span style={{ fontSize:11, color:t.textMuted, display:"inline-block", transition:"transform .15s", transform: open?"rotate(180deg)":"none" }}>▾</span>
+                  </div>
+                </button>
+                {open && (
+                  <div style={{ padding:"6px 0 10px" }}>
+                    {stateEntries.map(m => (
+                      <div key={m.id} style={{ fontSize:12, padding:"4px 0 4px 10px", borderLeft:`2px solid ${t.accent}`, marginBottom:3, lineHeight:1.5 }}>
+                        <div style={{ color:t.textSub, marginBottom:1 }}>{m.date.slice(5,7)}/{m.date.slice(0,4)}</div>
+                        {m.url
+                          ? <a href={m.url} target="_blank" rel="noreferrer"
+                              style={{ color:t.accent, textDecoration:"none", fontWeight:500 }}
+                              onMouseEnter={e => e.target.style.textDecoration="underline"}
+                              onMouseLeave={e => e.target.style.textDecoration="none"}>
+                              {m.title.length > 50 ? m.title.slice(0,50)+"…" : m.title}
+                            </a>
+                          : <span style={{ color:t.text }}>{m.title.length > 50 ? m.title.slice(0,50)+"…" : m.title}</span>
+                        }
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── MAIN APP ─────────────────────────────────────────────────────────────────
+function DrTurnerMediaTracker() {
+  const [dark, setDark] = useState(true); // opens with dark theme
+  const [tab, setTab] = useState("dashboard");
+  const [typeFilter, setTypeFilter] = useState("All");
+  const [yearFilter, setYearFilter] = useState("All");
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  const t = getTheme(dark);
+
+  const filtered = MEDIA_DATA.filter(m => {
+    if (typeFilter !== "All" && m.type !== typeFilter) return false;
+    if (yearFilter !== "All" && m.year !== parseInt(yearFilter)) return false;
+    if (search && !m.title.toLowerCase().includes(search.toLowerCase()) &&
+        !m.outlet.toLowerCase().includes(search.toLowerCase()) &&
+        !(m.city||"").toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  }).sort((a,b) => new Date(b.date)-new Date(a.date));
+
+  const featured = MEDIA_DATA.filter(m => m.featured).sort((a,b) => new Date(b.date)-new Date(a.date));
+
+  // Pill → now rectangular with soft corners, subtle shadow on active
+  const tabPill = (id) => ({
+    padding: "6px 15px", borderRadius: 6,
+    background: tab===id ? (dark ? t.navActive : "#FFFFFF") : "transparent",
+    color: dark ? (tab===id ? "#FFFFFF" : t.accent) : (tab===id ? t.accent : t.textSub),
+    border: dark
+      ? (tab===id ? "1px solid #69BE28" : `1px solid ${t.border}`)
+      : (tab===id ? "1px solid #69BE28" : "1px solid #1A2D4A"),
+    boxShadow: tab===id ? (dark ? t.tabShadow : "0 1px 4px rgba(0,0,0,0.10)") : "none",
+    fontSize: 11, fontWeight: tab===id ? 700 : 400, textTransform: "uppercase", letterSpacing: "0.05em",
+    cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
+  });
+
+  // Type badge - no box, font color and text only
+  const typeBadge = (type) => {
+    const c = typeColor(type, dark);
+    return { display:"inline-flex", alignItems:"center", padding:"2px 0", borderRadius:0, fontSize:10, fontWeight:700, letterSpacing:"0.06em", textTransform:"uppercase", background:"transparent", color:c.text, border:"none" };
+  };
+
+  const HCard = ({ children, style, onClick }) => {
+    const [h, setH] = useState(false);
+    return <div onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)} onClick={onClick} style={typeof style === "function" ? style(h) : style}>{typeof children === "function" ? children(h) : children}</div>;
+  };
+
+  const cardBase = (h) => ({
+    background: h ? t.cardHover : t.card, border:`1px solid ${h ? t.borderMid : t.border}`,
+    borderRadius:12, padding:"16px 18px", cursor:"pointer",
+    transition:"all 0.15s", transform: h ? "translateY(-1px)" : "none",
+    boxShadow: h ? t.shadow : "none",
+  });
+
+  // ── COUNT-UP HOOK ──────────────────────────────────────────────────────────
+  const useCountUp = (target, duration = 900) => {
+    const [val, setVal] = useState(0);
+    const str = String(target);
+    const hasCommas = str.includes(",");
+    const num = parseFloat(str.replace(/[^0-9.]/g, ""));
+    const suffix = str.replace(/[0-9.,]/g, "");
+    useEffect(() => {
+      if (!num) { setVal(0); return; }
+      let start = null;
+      const step = (ts) => {
+        if (!start) start = ts;
+        const p = Math.min((ts - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        setVal(Math.round(ease * num));
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }, [num]);
+    return (hasCommas ? val.toLocaleString() : val) + suffix;
+  };
+
+  const StatBlock = ({ n, l, compact, fill }) => {
+    const display = useCountUp(n);
+    return (
+      <div style={{
+        background: dark ? t.statBg : "#FFFFFF",
+        border: `1px solid ${dark ? t.border : "#1A2D4A"}`,
+        borderRadius:8, padding: compact ? "10px 8px" : "14px 12px", textAlign:"center",
+        boxShadow: dark ? "none" : "0 1px 3px rgba(20,32,46,0.06)",
+        height: fill ? "100%" : "auto",
+        display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+      }}>
+        <div style={{ fontSize: compact ? 18 : 24, fontWeight:800, color:"#69BE28", lineHeight:1 }}>{display}</div>
+        <div style={{ fontSize: compact ? 9 : 11, color:t.textTitle, fontWeight:600, textTransform:"uppercase", letterSpacing:0.8, marginTop:3 }}>{l}</div>
+      </div>
+    );
+  };
+
+  // ── DASHBOARD ──────────────────────────────────────────────────────────────
+  const Dashboard = () => {
+    const recent = [...MEDIA_DATA].sort((a,b) => new Date(b.date)-new Date(a.date)).slice(0,6);
+    const typeBreakdown = Object.entries(STATS.byType).sort((a,b) => b[1]-a[1]);
+    const yearBreakdown = Object.entries(STATS.byYear).sort((a,b) => b[0]-a[0]);
+    const maxY = Math.max(...Object.values(STATS.byYear));
+    return (
+      <div>
+        {/* Hero - two-column: stats left, portrait video right */}
+        <div style={{ background: dark ? "linear-gradient(135deg,#0d1f3c,#091a2e)" : "linear-gradient(135deg,#EDF1F8,#E4ECF8)", border:`1px solid ${t.border}`, borderRadius:16, padding:"24px 28px", marginBottom:24, position:"relative", overflow:"hidden", display:"flex", gap:24, alignItems:"stretch" }}>
+          <div style={{ position:"absolute", right:-40, top:-40, width:280, height:280, borderRadius:"50%", background: dark ? "radial-gradient(circle,rgba(88,153,204,0.08) 0%,transparent 70%)" : "radial-gradient(circle,rgba(74,111,165,0.08) 0%,transparent 70%)", pointerEvents:"none" }} />
+
+          {/* Left - name, subtitle, 2×3 stat grid fills remaining height */}
+          <div style={{ flex:1, display:"flex", flexDirection:"column", minWidth:0, gap:16 }}>
+            <div>
+              <div style={{ fontSize:28, fontWeight:800, fontFamily:"'Playfair Display',Georgia,serif", letterSpacing:-0.5, color:t.textTitle, marginBottom:2 }}>Dr. Shairi Turner</div>
+              <div style={{ fontSize:13, color:t.textSub, fontWeight:700 }}>Chief Health Officer | Crisis Text Line | Media Intelligence Dashboard | Updated April 8, 2026</div>
+            </div>
+            <div style={{ flex:1, display:"grid", gridTemplateColumns:"repeat(2,1fr)", gridTemplateRows:"repeat(3,1fr)", gap:8 }}>
+              {[["12,397,409+","Peak Event Reach"],[STATS.total+"","Catalogued Entries"],[STATS.outlets+"","Unique Outlets"],[STATS.tier1+"","Tier 1 Placements"],[STATS.cities+"+","Cities Reached"],["20","Years Experience"]].map(([n,l]) => (
+                <StatBlock key={l} n={n} l={l} fill={true} />
+              ))}
+            </div>
+          </div>
+
+          {/* Right - bordered featured clip frame */}
+          <div style={{ width:220, flexShrink:0, display:"flex", flexDirection:"column", border:`1px solid ${dark ? t.border : "#1A2D4A"}`, borderRadius:12, padding:"14px", gap:6, background: dark ? "rgba(0,0,0,0.15)" : "rgba(255,255,255,0.5)" }}>
+            <div style={{ fontSize:11, fontWeight:700, color:t.textTitle, textTransform:"uppercase", letterSpacing:"0.06em" }}>Featured Clip</div>
+            <a href="https://www.youtube.com/watch?v=BYl4hSdML6Y" target="_blank" rel="noopener noreferrer" style={{ fontSize:12, fontWeight:400, color:"#FFFFFF", lineHeight:1.3, textDecoration:"none" }}>The Youth of America in Crisis: Solutions and Hope</a>
+            <div style={{ fontSize:11, color:t.accent, fontWeight:500, marginBottom:2 }}>Zac Clark Show · 29-MAY-2024</div>
+            <video
+              controls
+              preload="metadata"
+              style={{ width:"100%", borderRadius:8, background:"#000", display:"block", flex:1, minHeight:0, objectFit:"cover" }}
+              src="https://github.com/jimmieldavis/dr-turner-media/raw/refs/heads/main/20240529_ZacClarkShow_TheYouthOfAmericaInCrisisSolutionsAndHope%5BCLIP%5D.mp4"
+            >
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+
+        {/* Featured */}
+        <div style={{ fontSize:17, fontWeight:700, color:t.textTitle, marginBottom:14 }}>
+          Flagship Appearances
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12, marginBottom:24 }}>
+          {featured.slice(0,9).map(item => (
+            <HCard key={item.id} style={cardBase} onClick={() => setSelected(item)}>
+              {h => (
+                <div style={{ ...cardBase(h), display:"flex", flexDirection:"column", minHeight:110 }}>
+                  <div style={{ fontSize:14, fontWeight:700, color:t.text, lineHeight:1.4, marginBottom:4, flex:1 }}>{item.title}</div>
+                  <div style={{ fontSize:12, color:t.accent, fontWeight:600, marginBottom:6 }}>{item.outlet}</div>
+                  <div style={{ fontSize:12, color:t.textSub, marginBottom:8 }}>
+                    <span style={{ color:t.textSub }}>{item.date.slice(5,7)}/{item.date.slice(0,4)}</span>
+                    {item.city && item.city!=="Remote" && item.city!=="[TBD]" && <span> · {item.city.split("/")[0].trim()}</span>}
+                  </div>
+                  <span style={typeBadge(item.type)}>{item.type}</span>
+                </div>
+              )}
+            </HCard>
+          ))}
+        </div>
+
+        {/* Breakdowns */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:24 }}>
+          <div style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:14, padding:"18px 20px", boxShadow:t.shadow }}>
+            <div style={{ fontSize:15, fontWeight:700, color:t.textTitle, marginBottom:14 }}>Appearances by Type</div>
+            {typeBreakdown.map(([type, count], i) => {
+              const pct = Math.round((count/MEDIA_DATA.length)*100);
+              const opacity = 1 - (i * 0.06);
+              const tc = typeColor(type, dark);
+              return (
+                <div key={type} style={{ marginBottom:10 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
+                    <span style={{ fontSize:14, fontWeight:500, color:tc.text }}>{type}</span>
+                    <span style={{ fontSize:13, color:t.textSub }}>
+                      <span style={{ color: dark ? "#69BE28" : t.accent, fontWeight:700 }}>{count}</span>
+                      <span> ({pct}%)</span>
+                    </span>
+                  </div>
+                  <div style={{ height:4, borderRadius:2, background:dark ? "rgba(255,255,255,0.06)" : "#E8EEF8" }}>
+                    <div style={{ width:`${pct}%`, height:"100%", background: dark ? "#69BE28" : t.accent, borderRadius:2, opacity:Math.max(opacity, 0.35) }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:14, padding:"18px 20px", boxShadow:t.shadow }}>
+            <div style={{ fontSize:15, fontWeight:700, color:t.textTitle, marginBottom:14 }}>Appearances by Year</div>
+            {yearBreakdown.filter(([y]) => parseInt(y) >= 2021).map(([year, count]) => {
+              const pct = Math.round((count/maxY)*100);
+              return (
+                <div key={year} style={{ marginBottom:10 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
+                    <span style={{ fontSize:14, fontWeight:500, color:t.text }}>{year}</span>
+                    <span style={{ fontSize:13, color: dark ? "#69BE28" : t.accent, fontWeight:700 }}>{year==="2024" ? "64 (official)" : count}</span>
+                  </div>
+                  <div style={{ height:4, borderRadius:2, background:dark ? "rgba(255,255,255,0.06)" : "#E8EEF8" }}>
+                    <div style={{ width:`${pct}%`, height:"100%", background: dark ? "#69BE28" : t.accent, borderRadius:2 }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Recent */}
+        <div style={{ fontSize:17, fontWeight:700, color:t.textTitle, marginBottom:14 }}>
+          Most Recent Appearances
+        </div>
+        {recent.map(item => {
+          const c = typeColor(item.type, dark);
+          return (
+            <HCard key={item.id} onClick={() => setSelected(item)}>
+              {h => (
+                <div style={{ ...cardBase(h), marginBottom:8, display:"flex", gap:0, alignItems:"flex-start" }}>
+                  <div style={{ width:72, flexShrink:0, paddingTop:2 }}>
+                    <div style={{ fontSize:12, color:t.textSub, fontWeight:500, whiteSpace:"nowrap" }}>{item.date.slice(5,7)}/{item.date.slice(0,4)}</div>
+                  </div>
+                  <div style={{ flex:1, minWidth:0, paddingRight:12 }}>
+                    <div style={{ fontSize:14, fontWeight:700, color:t.text, marginBottom:3 }}>{item.title}</div>
+                    <div style={{ fontSize:13, color:t.accent, fontWeight:600 }}>{item.outlet}</div>
+                  </div>
+                  <div style={{ width:72, flexShrink:0, display:"flex", justifyContent:"flex-end", alignItems:"flex-start", paddingTop:2 }}>
+                    <span style={typeBadge(item.type)}>{item.type}</span>
+                  </div>
+                </div>
+              )}
+            </HCard>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // ── LIBRARY ────────────────────────────────────────────────────────────────
+  const Library = () => (
+    <div>
+      <div style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:10, padding:"12px 16px", marginBottom:14, display:"flex", gap:10, alignItems:"center", flexWrap:"wrap", boxShadow:t.shadow }}>
+        <div style={{ position:"relative", flex:1, minWidth:200 }}>
+          <span style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", color:t.textMuted }}><Icon name="search" size={13}/></span>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search titles, outlets, cities…"
+            style={{ width:"100%", padding:"7px 12px 7px 32px", borderRadius:6, border:`1px solid ${t.border}`, background:t.bg, color:t.text, fontSize:14, outline:"none", fontFamily:"inherit" }} />
+        </div>
+        {[{val:typeFilter, set:setTypeFilter, opts:TYPES, label:"Type"},{val:yearFilter, set:setYearFilter, opts:YEARS, label:"Year"}].map(({val,set,opts,label}) => (
+          <select key={label} value={val} onChange={e => set(e.target.value)}
+            style={{ padding:"7px 10px", borderRadius:6, border:`1px solid ${t.border}`, background:t.bg, color:t.text, fontSize:14, cursor:"pointer", fontFamily:"inherit" }}>
+            {opts.map(o => <option key={o}>{o}</option>)}
+          </select>
+        ))}
+        <span style={{ fontSize:14, color:t.textSub, whiteSpace:"nowrap", fontWeight:500 }}>{filtered.length} entries</span>
+      </div>
+      <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+        {filtered.map(item => (
+          <div key={item.id} onClick={() => setSelected(item)} style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"11px 16px", boxShadow:t.shadow, cursor:"pointer", display:"flex", gap:14, alignItems:"flex-start" }}
+            onMouseEnter={e => e.currentTarget.style.background=t.cardHover}
+            onMouseLeave={e => e.currentTarget.style.background=t.card}>
+            <div style={{ width:80, flexShrink:0, paddingTop:1, display:"flex", flexDirection:"column", alignItems:"flex-start" }}>
+              <div style={{ fontSize:12, color:t.textSub, fontWeight:500 }}>{item.date.slice(5,7)}/{item.date.slice(0,4)}</div>
+              <div style={{ marginTop:4 }}><span style={typeBadge(item.type)}>{item.type}</span></div>
+            </div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:15, fontWeight:600, color:t.text, marginBottom:2, lineHeight:1.35 }}>{item.title}</div>
+              <div style={{ fontSize:13, color:t.accent, fontWeight:500, marginBottom:6 }}>{item.outlet}</div>
+              <div style={{ display:"flex", gap:5, flexWrap:"wrap", alignItems:"center" }}>
+                {item.tier==="Tier 1" || item.tier==="Tier 1+" ? <span style={{ fontSize:10, color: dark ? t.text : "#0F6B3E", background:"transparent", padding:"1px 6px", borderRadius:4, fontWeight:700, letterSpacing:"0.06em", textTransform:"uppercase", border:`1px solid ${t.border}` }}>{item.tier==="Tier 1+" ? "FLAGSHIP" : "TIER 1"}</span> : null}
+                {item.city && item.city!=="Remote" && item.city!=="[TBD]" && <span style={{ fontSize:12, color: dark ? t.textSub : t.textMuted }}>{item.city}</span>}
+              </div>
+            </div>
+          </div>
+        ))}
+        {filtered.length===0 && <div style={{ textAlign:"center", padding:"48px", color:t.textSub, fontSize:15 }}>No entries match your filters.</div>}
+      </div>
+    </div>
+  );
+
+  // ── TIMELINE ───────────────────────────────────────────────────────────────
+  const Timeline = () => {
+    const byYear = {};
+    MEDIA_DATA.forEach(m => { if (!byYear[m.year]) byYear[m.year]=[]; byYear[m.year].push(m); });
+    return (
+      <div style={{ height:"calc(100vh - 140px)", overflowY:"auto", paddingRight:8 }}>
+        {Object.entries(byYear).sort((a,b) => b[0]-a[0]).map(([yr, items]) => (
+          <div key={yr} style={{ marginBottom:28 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:12,
+              position:"sticky", top:0, zIndex:10,
+              background:t.bg, paddingTop:8, paddingBottom:6 }}>
+              <div style={{ fontSize:15, fontWeight:700, color:t.accent, background:t.accentGlow, padding:"3px 12px", borderRadius:5 }}>{yr}</div>
+              <div style={{ fontSize:13, color:t.textSub }}>{items.length} {items.length===1?"entry":"entries"}</div>
+              <div style={{ flex:1, height:"1px", background:t.border }} />
+            </div>
+            <div style={{ paddingLeft:20, borderLeft:`2px solid ${dark ? "rgba(88,153,204,0.2)" : "#D4E0F0"}`, display:"flex", flexDirection:"column", gap:5 }}>
+              {items.sort((a,b) => new Date(b.date)-new Date(a.date)).map(item => (
+                <div key={item.id} onClick={() => setSelected(item)} style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"10px 14px", boxShadow:t.shadow, cursor:"pointer" }}
+                  onMouseEnter={e => e.currentTarget.style.background=t.cardHover}
+                  onMouseLeave={e => e.currentTarget.style.background=t.card}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12 }}>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:14, fontWeight:600, color:t.text, lineHeight:1.35, marginBottom:2 }}>{item.title}</div>
+                      <div style={{ fontSize:13, color:t.textSub }}>{item.outlet}</div>
+                    </div>
+                    <div style={{ flexShrink:0, display:"flex", gap:5, alignItems:"center" }}>
+                      <span style={typeBadge(item.type)}>{item.type}</span>
+                      <span style={{ fontSize:12, color:t.textSub, whiteSpace:"nowrap" }}>{item.date.slice(5,7)}/{item.date.slice(0,4)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // ── HIGHLIGHT REEL ─────────────────────────────────────────────────────────
+  const Highlights = () => {
+    const top = MEDIA_DATA.filter(m => m.tier==="Tier 1+"||m.tier==="Tier 1").sort((a,b) => new Date(b.date)-new Date(a.date));
+    const showcase = top.filter(m => m.featured).slice(0,12);
+    return (
+      <div>
+        <div style={{ fontSize:15, color:t.textSub, marginBottom:20, lineHeight:1.6 }}>
+          Landmark appearances, top-tier national placements, and pivotal career moments. All Tier 1 and Tier 1+ placements.
+        </div>
+        {showcase.map((item, i) => {
+          const c = typeColor(item.type, dark);
+          return (
+            <HCard key={item.id} onClick={() => setSelected(item)}>
+              {h => (
+                <div style={{ ...cardBase(h), marginBottom:12, display:"flex", gap:12, alignItems:"flex-start" }}>
+                  <div style={{ flex:1 }}>
+                    <div style={{ display:"flex", gap:6, marginBottom:6, flexWrap:"wrap", alignItems:"center" }}>
+                      <span style={{ fontSize:12, fontWeight:700, letterSpacing:"0.04em", color:t.text, whiteSpace:"nowrap" }}>#{i+1}</span>
+                      <span style={typeBadge(item.type)}>{item.type}</span>
+                      {item.tier==="Tier 1+" && <span style={{ fontSize:10, fontWeight:700, color: dark ? t.text : "#0F6B3E", background:"transparent", padding:"1px 7px", borderRadius:4, letterSpacing:"0.06em", textTransform:"uppercase", border:`1px solid ${t.border}` }}>FLAGSHIP</span>}
+                      {item.tier==="Tier 1" && <span style={{ fontSize:10, fontWeight:700, color: dark ? t.text : "#0F6B3E", background:"transparent", padding:"1px 7px", borderRadius:4, letterSpacing:"0.06em", textTransform:"uppercase", border:`1px solid ${t.border}` }}>TIER 1</span>}
+                    </div>
+                    <div style={{ fontSize:15, fontWeight:700, color:t.text, marginBottom:3 }}>{item.title}</div>
+                    <div style={{ fontSize:13, color:t.accent, fontWeight:600, marginBottom:6 }}>{item.outlet}{item.city && item.city!=="Remote" && item.city!=="[TBD]" ? " · "+item.city.split("/")[0].trim() : ""}</div>
+                    <div style={{ fontSize:13, color:t.textSub, lineHeight:1.6 }}>{item.description}</div>
+                  </div>
+                  <div style={{ minWidth:70, textAlign:"right" }}>
+                    <div style={{ fontSize:12, color:t.textSub }}>{item.date.slice(5,7)}/{item.date.slice(0,4)}</div>
+                    <div style={{ marginTop:6, fontSize:13, fontWeight:600 }}>
+                      <span style={{ color: dark ? "#69BE28" : "#69BE28" }}>View</span>
+                      <span style={{ color: dark ? "#69BE28" : t.accent }}> →</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </HCard>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // ── MODAL ──────────────────────────────────────────────────────────────────
+  const Modal = () => {
+    if (!selected) return null;
+    const c = typeColor(selected.type, dark);
+    return (
+      <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.72)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:1000, backdropFilter:"blur(6px)", padding:24 }} onClick={() => setSelected(null)}>
+        <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:18, padding:"28px 32px", maxWidth:560, width:"100%", boxShadow:t.shadowLg, position:"relative" }} onClick={e => e.stopPropagation()}>
+          <button style={{ position:"absolute", top:14, right:14, width:28, height:28, borderRadius:6, border:`1px solid ${t.border}`, background:t.surfaceAlt, color:t.textSub, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"sans-serif" }} onClick={() => setSelected(null)}>✕</button>
+          <div style={{ display:"flex", gap:7, marginBottom:10, flexWrap:"wrap" }}>
+            <span style={typeBadge(selected.type)}>{selected.type}</span>
+            {(selected.tier==="Tier 1"||selected.tier==="Tier 1+") && <span style={{ fontSize:10, fontWeight:700, color: dark ? t.text : "#0F6B3E", background:"transparent", padding:"2px 8px", borderRadius:4, letterSpacing:"0.06em", textTransform:"uppercase", border:`1px solid ${t.border}` }}>{selected.tier==="Tier 1+" ? "FLAGSHIP" : "TIER 1"}</span>}
+          </div>
+          <div style={{ fontSize:20, fontWeight:800, color:t.text, lineHeight:1.3, marginBottom:5 }}>{selected.title}</div>
+          <div style={{ fontSize:15, color:t.accent, fontWeight:600, marginBottom:14 }}>{selected.outlet}</div>
+          <div style={{ display:"flex", gap:16, marginBottom:14, fontSize:14, color:t.textSub, flexWrap:"wrap" }}>
+            <span style={{ display:"flex", gap:5, alignItems:"center" }}><Icon name="clock" size={12}/>{(d => `${d.slice(8,10)}-${["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][parseInt(d.slice(5,7))-1]}-${d.slice(0,4)}`)(selected.date)}</span>
+            {selected.city && <span style={{ display:"flex", gap:5, alignItems:"center" }}><Icon name="pin" size={12}/>{selected.city}</span>}
+          </div>
+          <div style={{ fontSize:15, color:t.text, lineHeight:1.8, padding:"14px 16px", background:t.surfaceAlt, borderRadius:10, border:`1px solid ${t.border}`, marginBottom:16 }}>{selected.description}</div>
+          {selected.url && selected.url !== "" ? (
+            <a href={selected.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:"none" }}>
+              <div style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"8px 14px", borderRadius:7, background:t.accentGlow, border:`1px solid ${t.border}`, fontSize:14, fontWeight:600, cursor:"pointer" }}>
+                <span style={{ color: dark ? "#FFFFFF" : "#1B3A6B", display:"inline-flex" }}><Icon name="link" size={12}/></span>
+                <span style={{ color:"#69BE28" }}>View Source</span>
+              </div>
+            </a>
+          ) : (
+            <div style={{ fontSize:13, color:t.textMuted, fontStyle:"italic" }}>Direct URL: [TBD - review Drive subfolder for source link]</div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const tabs = [
+    { id:"dashboard", label:"Dashboard" }, { id:"library", label:"Library" },
+    { id:"timeline", label:"Timeline" }, { id:"map", label:"Outreach" },
+    { id:"highlights", label:"Highlights" },
+  ];
+
+  if (!mounted) return null;
+  return (
+    <div style={{ fontFamily:"'DM Sans',system-ui,sans-serif", background:t.bg, minHeight:"100vh", color:t.text, transition:"background 0.3s,color 0.3s" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap');*{box-sizing:border-box;margin:0;padding:0}::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:${t.border};border-radius:3px}`}</style>
+
+      {/* HEADER */}
+      <div style={{ background:t.surface, borderBottom:`1px solid ${t.border}`, position:"sticky", top:0, zIndex:100, boxShadow:t.shadow }}>
+        <div style={{ maxWidth:1200, margin:"0 auto", padding:"0 24px", display:"flex", alignItems:"center", justifyContent:"space-between", height:66 }}>
+          {/* Headshot */}
+          <div style={{ width:48, height:48, borderRadius:8, overflow:"hidden", flexShrink:0, border:`2px solid ${dark ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.9)"}`, boxShadow: dark ? "0 0 0 1px rgba(88,153,204,0.35)" : "0 0 0 1px #C0CCD8" }}>
+            <img src={`data:image/jpeg;base64,${HEADSHOT}`} alt="Dr. Shairi Turner" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+          </div>
+
+          {/* NAV */}
+          <nav style={{ display:"flex", gap:3, background: t.navBg, padding:"5px 6px", borderRadius:8, border:`1px solid ${t.border}` }}>
+            {tabs.map(({ id, label }) => (
+              <button key={id} style={tabPill(id)} onClick={() => setTab(id)}>{label}</button>
+            ))}
+          </nav>
+
+          {/* Gear toggle */}
+          <button style={{ width:36, height:36, borderRadius:8, border:`1px solid ${t.border}`, background:t.surfaceAlt, color:t.textSub, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.2s" }} onClick={() => setDark(d => !d)} title={dark ? "Switch to light mode" : "Switch to dark mode"}>
+            <Icon name="gear" size={15}/>
+          </button>
+        </div>
+      </div>
+
+      {/* CONTENT */}
+      <div style={{ padding:"24px", maxWidth:1200, margin:"0 auto" }}>
+        {tab==="dashboard"  && <Dashboard />}
+        {tab==="library"    && <Library />}
+        {tab==="timeline"   && <Timeline />}
+        {tab==="map"        && <USMap dark={dark} t={t} data={MEDIA_DATA} />}
+        {tab==="highlights" && <Highlights />}
+      </div>
+
+      <Modal />
+
+      <div style={{ textAlign:"center", padding:"16px", fontSize:12, color:t.textMuted, borderTop:`1px solid ${t.border}` }}>
+        {`Dr. Turner Media Tracker v7 · ${STATS.total} verified catalogued entries · 216+ total estimated including undocumented H1 2022 regional appearances · Data: Google Drive + Web Research + LF999 Final Airings Report · Updated April 8, 2026`}
+      </div>
+    </div>
+  );
+}
+
+
+ReactDOM.render(React.createElement(DrTurnerMediaTracker), document.getElementById("root"));
+</script>
+</body>
+</html>
