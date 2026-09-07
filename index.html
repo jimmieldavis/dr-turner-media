@@ -871,15 +871,15 @@ function DrTurnerMediaTracker() {
           return (
             <HCard key={item.id} onClick={() => setSelected(item)}>
               {h => (
-                <div style={{ ...cardBase(h), marginBottom:8, display:"flex", gap:0, alignItems:"flex-start" }}>
-                  <div style={{ width:72, flexShrink:0, paddingTop:2 }}>
+                <div className="recent-item" style={{ ...cardBase(h), marginBottom:8, display:"flex", gap:0, alignItems:"flex-start" }}>
+                  <div className="recent-date" style={{ width:72, flexShrink:0, paddingTop:2 }}>
                     <div style={{ fontSize:12, color:t.textSub, fontWeight:500, whiteSpace:"nowrap" }}>{item.date.slice(5,7)}/{item.date.slice(0,4)}</div>
                   </div>
-                  <div style={{ flex:1, minWidth:0, paddingRight:12 }}>
+                  <div className="recent-title" style={{ flex:1, minWidth:0, paddingRight:12 }}>
                     <div style={{ fontSize:14, fontWeight:700, color:t.text, marginBottom:3 }}>{item.title}</div>
                     <div style={{ fontSize:13, color:t.accent, fontWeight:600 }}>{item.outlet}</div>
                   </div>
-                  <div style={{ width:72, flexShrink:0, display:"flex", justifyContent:"flex-end", alignItems:"flex-start", paddingTop:2 }}>
+                  <div className="recent-badge" style={{ width:72, flexShrink:0, display:"flex", justifyContent:"flex-end", alignItems:"flex-start", paddingTop:2 }}>
                     <span style={typeBadge(item.type)}>{item.type}</span>
                   </div>
                 </div>
@@ -1054,7 +1054,7 @@ function DrTurnerMediaTracker() {
   if (!mounted) return null;
   return (
     <div style={{ fontFamily:"'DM Sans',system-ui,sans-serif", background:t.bg, minHeight:"100vh", color:t.text, transition:"background 0.3s,color 0.3s" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap');*{box-sizing:border-box;margin:0;padding:0}::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:${t.border};border-radius:3px}@media (max-width:640px){.hero-row{flex-direction:column !important}.hero-clip{width:100% !important}}`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap');*{box-sizing:border-box;margin:0;padding:0}html,body{background:${t.bg};overscroll-behavior-x:none}::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:${t.border};border-radius:3px}@media (max-width:640px){.hero-row{flex-direction:column !important}.hero-clip{width:100% !important}.recent-item{flex-wrap:wrap !important}.recent-date{order:1}.recent-badge{order:2;margin-left:auto}.recent-title{order:3;flex:1 1 100% !important;padding-right:0 !important;margin-top:6px}}@media (orientation:landscape) and (max-height:500px){.hero-clip{max-height:60vh !important}}`}</style>
 
       {/* HEADER */}
       <div style={{ background:t.surface, borderBottom:`1px solid ${t.border}`, position:"sticky", top:0, zIndex:100, boxShadow:t.shadow }}>
